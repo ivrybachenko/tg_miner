@@ -1,7 +1,7 @@
 from telethon import TelegramClient
 from telethon.types import PeerChannel
 from .logger import logger
-from .cache import MemoryCache
+from .cache import Cache
 
 class Client:
     """
@@ -10,7 +10,7 @@ class Client:
     name: str = None
     is_active: bool = False
     _client = None
-    _cache: MemoryCache = None
+    _cache: Cache = None
 
     def __init__(self, client_name, api_id, api_hash, cache):
         self._client = TelegramClient(client_name, api_id, api_hash)
