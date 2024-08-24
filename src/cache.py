@@ -4,7 +4,7 @@ class MemoryCache:
     """
     # TODO extract interface
     # TODO test coverage is too low
-    storage = {}
+    _storage = {}
 
 
     def store(self, entity_type, entity_id, entity_value, ttl_seconds):
@@ -12,9 +12,9 @@ class MemoryCache:
         Stores the value in cache.
         """
         # TODO ttl is not implemented
-        if entity_type not in self.storage:
-            self.storage_api_key[entity_type] = {}
-        self.storage[entity_type][entity_id] = entity_value
+        if entity_type not in self._storage:
+            self._storage[entity_type] = {}
+        self._storage[entity_type][entity_id] = entity_value
 
     
     def get(self, entity_type, entity_id):
@@ -22,6 +22,6 @@ class MemoryCache:
         Retrieves the value from cache.
         Returns None if value is not present or outdated.
         """
-        if entity_type not in self.storage:
-            self.storage_api_key[entity_type] = {}
-        return self[entity_type].get(entity_id, None)
+        if entity_type not in self._storage:
+            self._storage[entity_type] = {}
+        return self._storage[entity_type].get(entity_id, None)
