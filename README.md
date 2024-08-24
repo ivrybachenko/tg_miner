@@ -11,4 +11,6 @@ This project is used to collect data from Telegram channels.
 
 
 # How to develop  
+Style guide for docstrings: https://numpydoc.readthedocs.io/en/latest/format.html#overview  
+Hexagonal architecture: https://vaadin.com/blog/ddd-part-3-domain-driven-design-and-the-hexagonal-architecture  
 You can run tests with `python -m unittest test/cache.py`.
