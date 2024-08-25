@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from src.telegram import Channel, Message
+from src.infrastructure.telegram import Channel, Message # TODO storage should use its own model
 
 class Storage(ABC):
     """

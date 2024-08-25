@@ -1,7 +1,7 @@
 import asyncio
-from src.client import ClientPool
-from src.storage import CsvStorage
-from src.logger import logger
+from src.application.client import ClientPool
+from src.infrastructure.storage import CsvStorage
+from src.infrastructure.logging import logger
 
 async def main():
     """

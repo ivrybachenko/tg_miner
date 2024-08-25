@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-from src.storage import Storage
-from src.telegram import Channel, Message
+from .storage import Storage
+from src.infrastructure.telegram import Channel, Message
 
 class CsvStorage(Storage):
     """

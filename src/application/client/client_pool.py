@@ -1,7 +1,7 @@
 import configparser
-from src.logger import logger
+from src.infrastructure.logging import logger
+from src.infrastructure.cache import MemoryCache
 from .client import Client
-from src.cache import MemoryCache
 
 
 class ClientPool:
