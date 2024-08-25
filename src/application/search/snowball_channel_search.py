@@ -50,18 +50,20 @@ class SnowballChannelSearch:
             self._enqueue_channel(x)
 
     def _enqueue_channel(self, channel_id: str):
-        logger.info(f'added channel {channel_id}')
+        logger.info(f'Found new channel: {channel_id}')
         self._channels[channel_id] = ChannelItem(channel_id, None, ChannelItemStatus.RELEVANCE_UNKNOWN)
 
     async def start(self):
         i = 0
         while not self._is_finished():
-            logger.info(f'Step {i}. Result: {self._channels}')
+            logger.info(f'Step {i}. Total number of chanels: {len(self._channels)}')
             await self._update_relevance()
             await self._search_ancestors()
             i += 1
-        logger.info(f'Step {i}. Result: {self._channels}')
-        return self._channels
+        logger.info(f'Step {i}. Total number of chanels: {len(self._channels)}')
+        # TODO Should not return the whole list. 
+        # Should either yield row-by-row or save directly to storage. 
+        return self._channels 
             
     async def _update_relevance(self):
         logger.info('Updating relevance...')

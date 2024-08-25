@@ -46,13 +46,9 @@ class TelethonTelegramApi(TelegramApi):
 
     async def get_channel(self, channel_id: str) -> Channel:
         peer_id = await self._get_peer_id(channel_id) 
-        async with self._client:
-            logger.info(f'GET_ENTITY: {channel_id}')
-            time.sleep(1)
-            channel = await self._client.get_entity(PeerChannel(peer_id))
-        return Channel(channel_id, channel.title)
+        return await self._get_channel_by_peer_id(PeerChannel(peer_id))
 
-    async def get_channel_by_peer_id(self, peer_id: PeerChannel) -> Channel:
+    async def _get_channel_by_peer_id(self, peer_id: PeerChannel) -> Channel:
         cached_value = self._cache.get(self._CHANNEL_BY_PEER_ID_CACHE_TYPE, peer_id.channel_id)
         if cached_value is not None:
             return cached_value
@@ -74,11 +70,12 @@ class TelethonTelegramApi(TelegramApi):
                 entity=peer_id, 
                 limit=count
             )
+        # TODO Handle exceptions from Telegram. Some channels are forbidden for scraping. 
         return [
             Message(
                 message_id=x.id, 
                 text=x.text,
-                channel_id=(await self.get_channel_by_peer_id(x.peer_id)).channel_id,
+                channel_id=(await self._get_channel_by_peer_id(x.peer_id)).channel_id,
                 datetime=x.date,
                 views=x.views,
                 forwards=x.forwards,
@@ -92,9 +89,7 @@ class TelethonTelegramApi(TelegramApi):
             return None
         if type(message.fwd_from.from_id) != PeerChannel:
             return None
-        logger.info(f'Get FWD_FROM for {message.fwd_from.from_id}')
-        channel_from = await self.get_channel_by_peer_id(message.fwd_from.from_id)
-        logger.info(f'FWD_FROM is {channel_from}')
+        channel_from = await self._get_channel_by_peer_id(message.fwd_from.from_id)
         return channel_from.channel_id
 
     async def _get_peer_id(self, channel_id: str):

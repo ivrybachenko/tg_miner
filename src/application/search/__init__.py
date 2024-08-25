@@ -1,1 +1,2 @@
 from .snowball_channel_search import SnowballChannelSearch
+from .channel_messages_search import ChannelMessagesSearch
