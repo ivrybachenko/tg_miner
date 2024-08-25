@@ -47,8 +47,10 @@ class TestTelethonTelegramApi(unittest.TestCase):
     async def test_authorize_success(self):
         tg_mock = self.create_tg_mock()
         when(tg_mock).start().thenReturn(self.f_empty())
+
         api = TelethonTelegramApi('client_name', 12762, 'api_hash', MemoryCache())
         await api.authorize()
+
         verify(tg_mock).__call__('client_name', 12762, 'api_hash')
         verify(tg_mock).start()
         verifyNoMoreInteractions(tg_mock)
@@ -57,9 +59,11 @@ class TestTelethonTelegramApi(unittest.TestCase):
     async def test_authorize_failed(self):
         tg_mock = self.create_tg_mock()
         when(tg_mock).start().thenReturn(self.f_raise(Exception('Auth failed')))
+
         api = TelethonTelegramApi('client_name', 12762, 'api_hash', MemoryCache())
         with self.assertRaises(Exception):
             await api.authorize()
+
         verify(tg_mock).__call__('client_name', 12762, 'api_hash')
         verify(tg_mock).start()
         verifyNoMoreInteractions(tg_mock)
@@ -71,8 +75,10 @@ class TestTelethonTelegramApi(unittest.TestCase):
         tg_mock = self.create_tg_mock()
         when(tg_mock).get_peer_id(expected_channel.id).thenReturn(self.f_result(peer_id))
         when(tg_mock).get_entity(PeerChannel(peer_id)).thenReturn(self.f_result(expected_channel))
+        
         api = TelethonTelegramApi('client_name', 12762, 'api_hash', MemoryCache())
         await api.get_channel(expected_channel.id)
+
         verify(tg_mock).__call__('client_name', 12762, 'api_hash')
         verify(tg_mock, times=2).__aenter__()
         verify(tg_mock, times=2).__aexit__(any, any, any)
@@ -87,9 +93,11 @@ class TestTelethonTelegramApi(unittest.TestCase):
         tg_mock = self.create_tg_mock()
         when(tg_mock).get_peer_id(expected_channel.id).thenReturn(self.f_result(peer_id))
         when(tg_mock).get_entity(PeerChannel(peer_id)).thenReturn(self.f_result(expected_channel))
+        
         api = TelethonTelegramApi('client_name', 12762, 'api_hash', MemoryCache())
         await api.get_channel(expected_channel.id)
         await api.get_channel(expected_channel.id)
+
         verify(tg_mock).__call__('client_name', 12762, 'api_hash')
         verify(tg_mock, times=3).__aenter__()
         verify(tg_mock, times=3).__aexit__(any, any, any)
@@ -108,8 +116,10 @@ class TestTelethonTelegramApi(unittest.TestCase):
             entity=any, 
             limit=any
         ).thenReturn(self.f_result(excpected_messages))
+        
         api = TelethonTelegramApi('client_name', 12762, 'api_hash', MemoryCache())
         await api.get_messages(channel_id, 3)
+
         verify(tg_mock).__call__('client_name', 12762, 'api_hash')
         verify(tg_mock, times=2).__aenter__()
         verify(tg_mock, times=2).__aexit__(any, any, any)
@@ -128,9 +138,11 @@ class TestTelethonTelegramApi(unittest.TestCase):
             entity=any, 
             limit=any
         ).thenReturn(self.f_result(excpected_messages))
+
         api = TelethonTelegramApi('client_name', 12762, 'api_hash', MemoryCache())
         await api.get_messages(channel_id, 3)
         await api.get_messages(channel_id, 3)
+        
         verify(tg_mock).__call__('client_name', 12762, 'api_hash')
         verify(tg_mock, times=3).__aenter__()
         verify(tg_mock, times=3).__aexit__(any, any, any)

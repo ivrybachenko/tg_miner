@@ -44,10 +44,7 @@ class TelethonTelegramApi(TelegramApi):
         peer_id = await self._get_peer_id(channel_id) 
         async with self._client:
             channel = await self._client.get_entity(PeerChannel(peer_id))
-        return {
-            'id': channel_id,
-            'title': channel.title
-        }
+        return Channel(channel_id, channel.title)
 
     async def get_messages(self, channel_id: str, count: int) -> list[Message]:
         peer_id = await self._get_peer_id(channel_id)
@@ -57,10 +54,10 @@ class TelethonTelegramApi(TelegramApi):
                 limit=count
             )
         return [
-            {
-                'id': x.id,
-                'text': x.text
-            }
+            Message(
+                x.id, 
+                x.text
+            )
             for x in messages
         ]
 
