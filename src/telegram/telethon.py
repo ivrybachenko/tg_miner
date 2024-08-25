@@ -5,6 +5,10 @@ from ..cache import Cache
 from .model import Channel, Message
 
 
+def get_client_factory():
+    return TelegramClient
+
+
 class TelethonTelegramApi(TelegramApi):
     """
     Implementation of Telegram API using Telethon library.
@@ -30,7 +34,7 @@ class TelethonTelegramApi(TelegramApi):
         cache: Cache
             Cache to store temporal data.
         """
-        self._client = TelegramClient(client_name, api_id, api_hash)
+        self._client = get_client_factory()(client_name, api_id, api_hash)
         self._cache = cache
 
     async def authorize(self):

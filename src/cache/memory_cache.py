@@ -5,7 +5,10 @@ class MemoryCache(Cache):
     """
     In-memory cache implementation.
     """
-    _storage = {}
+    _storage = None
+
+    def __init__(self):
+        self._storage = {}
 
     def store(self, entity_type, entity_id, entity_value, ttl_seconds):
         # TODO ttl is not implemented
