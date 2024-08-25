@@ -1,6 +1,7 @@
-from .logger import logger
-from .cache import Cache
-from .telegram import TelegramApi, TelethonTelegramApi
+from src.logger import logger
+from src.cache import Cache
+from src.telegram import TelegramApi, TelethonTelegramApi
+
 
 class Client:
     """

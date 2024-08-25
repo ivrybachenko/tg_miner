@@ -1,5 +1,5 @@
 import asyncio
-from src.client_pool import ClientPool
+from src.client import ClientPool
 from src.storage import CsvStorage
 from src.logger import logger
 

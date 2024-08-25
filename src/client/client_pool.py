@@ -1,7 +1,8 @@
 import configparser
-from .logger import logger
+from src.logger import logger
 from .client import Client
-from .cache import MemoryCache
+from src.cache import MemoryCache
+
 
 class ClientPool:
     """
@@ -31,14 +32,12 @@ class ClientPool:
             api_hash = client_config.get(client_name, 'api_hash')
             client = Client(client_name, api_id, api_hash, self._cache)
             self._clients.append(client)
-    
 
     def get_active_clients(self):
         """
         Returns the list of active clients.
         """
         return [x for x in self._clients if x.is_active]
-
     
     async def activate_clients(self):
         """
@@ -60,7 +59,6 @@ class ClientPool:
             for client in self._clients
         ])
         
-
     def get(self):
         """
         Returns the next client which can be used for API call.
