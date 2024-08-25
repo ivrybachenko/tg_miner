@@ -1,4 +1,3 @@
-import configparser
 from src.infrastructure.logging import logger
 from src.infrastructure.cache import MemoryCache
 from .client import Client
@@ -12,26 +11,8 @@ class ClientPool:
     _next_client_index = 0 # Id of client which will be used for API call next time
     _cache = MemoryCache()
 
-    def read_clients_from_properties(self, properties_file):
-        """
-        Reads list of clients from property file.
-        
-        Property file should have the following structure:
-        [CLIENT_TITLE_1]
-        api_id=242563869
-        api_hash=ceb789345d95101f1245a607277f4563
-        [CLIENT_TITLE_1]
-        api_id=73033868
-        api_hash=jio789345d95101f1245a607277f4563
-        """
-        logger.info('Reading client list from properties...')
-        client_config = configparser.ConfigParser()
-        client_config.read(properties_file)
-        for client_name in client_config.sections():
-            api_id = client_config.get(client_name, 'api_id')
-            api_hash = client_config.get(client_name, 'api_hash')
-            client = Client(client_name, api_id, api_hash, self._cache)
-            self._clients.append(client)
+    def add_client(self, client: Client):
+        self._clients.append(client)
 
     def get_active_clients(self):
         """
