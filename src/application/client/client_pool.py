@@ -40,7 +40,7 @@ class ClientPool:
             for client in self._clients
         ])
         
-    def get(self):
+    def get(self) -> Client:
         """
         Returns the next client which can be used for API call.
         """

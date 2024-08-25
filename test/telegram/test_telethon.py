@@ -43,6 +43,17 @@ class TestTelethonTelegramApi(unittest.TestCase):
         f.set_exception(exception)
         return f
 
+    def message(self):
+        return Message(
+            message_id=1, 
+            text='some_text',
+            channel_id='some_channel_id',
+            datetime=0,
+            views=0,
+            forwards=0,
+            channel_fwd_from_id=None
+        )
+
     @async_test
     async def test_authorize_success(self):
         tg_mock = self.create_tg_mock()
@@ -108,7 +119,7 @@ class TestTelethonTelegramApi(unittest.TestCase):
     @async_test
     async def test_get_message(self):
         channel_id = 'some_channel_id'
-        excpected_messages = [Message(1, 'some_text')]
+        excpected_messages = [self.message()]
         peer_id = 'peer_id'
         tg_mock = self.create_tg_mock()
         when(tg_mock).get_peer_id(channel_id).thenReturn(self.f_result(peer_id))
@@ -130,7 +141,7 @@ class TestTelethonTelegramApi(unittest.TestCase):
     @async_test
     async def test_get_message_use_cached_peer_id(self):
         channel_id = 'some_channel_id'
-        excpected_messages = [Message(1, 'some_text')]
+        excpected_messages = [self.message()]
         peer_id = 'peer_id'
         tg_mock = self.create_tg_mock()
         when(tg_mock).get_peer_id(channel_id).thenReturn(self.f_result(peer_id))
