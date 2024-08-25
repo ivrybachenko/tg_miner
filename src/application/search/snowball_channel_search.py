@@ -18,7 +18,17 @@ class ChannelItem:
 
 
 class SnowballChannelSearch:
-    
+    """
+    Searches for relevant channels with snowball algorithm.
+
+    Algorithm:
+    1. Enqueue start channels.
+    1. Estimate the relevance for each enqueued channel.
+    2. Pick the most relevant nonprocessed channel. Mark it as processed.
+    3. Extract top-k messages from picked channel. 
+       If message is forwarded from another channel, enqueue this channel. 
+    4. Go to step 2 or finish, if job is done.
+    """
     _client_pool = None
     _relevance_estimator = None
     _channels: dict[str, ChannelItem] = {}
