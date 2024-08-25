@@ -1,5 +1,5 @@
 import unittest
-from src.cache import MemoryCache
+from src.infrastructure.cache import MemoryCache
 
 
 class TestMemoryCache(unittest.TestCase):

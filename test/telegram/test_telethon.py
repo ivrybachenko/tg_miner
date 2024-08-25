@@ -2,9 +2,9 @@ import unittest
 import asyncio
 from mockito import mock, when, verify, verifyNoMoreInteractions
 from telethon.types import PeerChannel
-import src.telegram.telethon as tg_telethon
-from src.telegram import TelethonTelegramApi, Channel, Message
-from src.cache import MemoryCache
+import src.infrastructure.telegram.telethon as tg_telethon
+from src.infrastructure.telegram import TelethonTelegramApi, Channel, Message
+from src.infrastructure.cache import MemoryCache
 
 def async_test(coro):
     def wrapper(*args, **kwargs):
