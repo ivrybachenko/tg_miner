@@ -18,20 +18,25 @@ async def main():
     await client_pool.activate_clients()
     logger.info('Application is ready.')
 
-    # search = ChannelMessagesSearch(client_pool, 'cb_economics', 10)
-    # messages = await search.start()
-    # logger.info(f'Search result is {messages}')
+    # search = ChannelMessagesSearch(
+    #     client_pool = client_pool,
+    #     storage=storage,
+    #     channel_id='cb_economics', 
+    #     max_message_count=10
+    # )
+    # await search.start()
+    # logger.info(f'Search finished.')
 
     search = SnowballChannelSearch(
         client_pool=client_pool, 
+        storage=storage,
         relevance_estimator=ChannelRelevanceEstimator(),
         start_channels=['cb_economics'],
         max_channels_count=100,
-        number_of_messages_for_ancestor_search=100
+        number_of_messages_for_ancestor_search=10
     )
-    channels = await search.start()
+    await search.start()
     logger.info('Search finished.')
-    logger.info(f'Search result is {channels}')
 
     # channel = await client_pool.get().get_channel('cb_economics')
     # logger.info(channel)

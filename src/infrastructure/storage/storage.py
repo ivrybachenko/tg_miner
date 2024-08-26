@@ -1,38 +1,59 @@
 from abc import ABC, abstractmethod
-from src.infrastructure.telegram import Channel, Message # TODO storage should use its own model
+
+
+class StoredItem(ABC):
+    """
+    Base class for all entities that can be stored.
+    """
+
+    @abstractmethod
+    def get_type(self) -> str:
+        """
+        Returns
+        -------
+        str
+            Returns type of the entity being stored. 
+            Entities of same type should have same structure.
+        """
+        pass
+
+    @abstractmethod
+    def get_key(self) -> str:
+        """
+        str
+            Returns title of entity key.
+            If entity with same key and type is already present in storage,
+              then stored entity will be updated.
+        """
+        # TODO It would be cool to be able to make compound keys.
+        pass
+
+    @abstractmethod
+    def get_value(self) -> dict[str, str]:
+        """
+        Returns
+        -------
+        dict[str, str]
+            Returns entity is a dict.
+            If your entity is a complex object, you can use database normalization rules.
+        """
+        pass
+
 
 class Storage(ABC):
     """
     This class is used to store collected data.
     """
-    
-    @abstractmethod
-    def save_message(self, message: Message):
+
+    def save(self, item: StoredItem):
         """
-        Stores the message.
+        Saves entity to storage.
 
         Parameters
         ----------
-        message: Message
-            Message to store.
+        item: StoredItem
+            Item to be stored. 
 
-        Returns
-        -------
-        None
-            Returns nothing.
-        """
-        pass
-
-    @abstractmethod
-    def save_channel(self, channel: Channel):
-        """
-        Stores the channel.
-
-        Parameters
-        ----------
-        channel: Channel
-            Channel to store.
-        
         Returns
         -------
         None

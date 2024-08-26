@@ -1,2 +1,2 @@
-from .storage import Storage
+from .storage import Storage, StoredItem
 from .csv_storage import CsvStorage
