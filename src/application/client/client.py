@@ -17,6 +17,11 @@ class Client:
         self._cache = cache
         self.name = client_name
 
+    def __init__(self, client_name, cache: Cache, api: TelethonTelegramApi):
+        self._api = api
+        self._cache = cache
+        self.name = client_name
+
     async def activate(self):
         """
         Ensures that client is ready for API-calls. 
@@ -27,7 +32,7 @@ class Client:
             self.is_active = True
         except Exception as e:
             self.is_active = False
-            logger.info(f'Failed to activate Telegram client.')
+            logger.error(f'Failed to activate Telegram client.\r\n{e}')
     
     async def get_channel(self, channel_id):
         """

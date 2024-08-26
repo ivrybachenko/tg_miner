@@ -1,0 +1,28 @@
+{
+    "channel": {
+        "id": "channel_1",
+        "title": "Channel 1"
+    },
+    "messages": [
+        {
+            "id": 1,
+            "text": "Message 1"
+        },
+        {
+            "id": 2,
+            "text": "Message 2"
+        },
+        {
+            "id": 3,
+            "text": "Message 3"
+        },
+        {
+            "id": 4,
+            "text": "Message 4"
+        },
+        {
+            "id": 5,
+            "text": "Message 5"
+        }
+    ]
+}
