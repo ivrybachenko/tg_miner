@@ -1,6 +1,6 @@
 from src.application.client import ClientPool
 from src.infrastructure.storage import Storage, StoredItem
-from src.infrastructure.telegram import Message
+from src.infrastructure.telegram import MessageResponse
 
 
 class ChannelMessagesSearch:
@@ -31,7 +31,7 @@ class ChannelMessagesSearch:
 
 class StoredMessage(StoredItem):
     
-    def __init__(self, message: Message):
+    def __init__(self, message: MessageResponse):
         self._value = {
             'id': message.message_id,
             'channel_id': message.channel_id,

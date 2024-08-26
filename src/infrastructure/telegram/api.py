@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from .model import Channel, Message
+from .model import ChannelResponse, MessageResponse
 
 
 class TelegramApi(ABC):
@@ -21,7 +21,7 @@ class TelegramApi(ABC):
         pass
 
     @abstractmethod
-    async def get_channel(self, channel_id: str) -> Channel:
+    async def get_channel(self, channel_id: str) -> ChannelResponse:
         """
         Get information about the channel.
 
@@ -39,7 +39,7 @@ class TelegramApi(ABC):
         pass
 
     @abstractmethod
-    async def get_messages(self, channel_id: str, count: int) -> list[Message]:
+    async def get_messages(self, channel_id: str, count: int) -> list[MessageResponse]:
         """
         Get messages from the channel.
 

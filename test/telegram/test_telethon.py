@@ -3,7 +3,7 @@ import asyncio
 from mockito import mock, when, verify, verifyNoMoreInteractions
 from telethon.types import PeerChannel
 import src.infrastructure.telegram.telethon as tg_telethon
-from src.infrastructure.telegram import TelethonTelegramApi, Channel, Message
+from src.infrastructure.telegram import TelethonTelegramApi, ChannelResponse, MessageResponse
 from src.infrastructure.cache import MemoryCache
 
 def async_test(coro):
@@ -44,7 +44,7 @@ class TestTelethonTelegramApi(unittest.TestCase):
         return f
 
     def message(self):
-        return Message(
+        return MessageResponse(
             message_id=1, 
             text='some_text',
             channel_id='some_channel_id',
@@ -81,7 +81,7 @@ class TestTelethonTelegramApi(unittest.TestCase):
 
     @async_test
     async def test_get_channel(self):
-        expected_channel = Channel('channel_id', 'channel_title')
+        expected_channel = ChannelResponse('channel_id', 'channel_title')
         peer_id = 'peer_id'
         tg_mock = self.create_tg_mock()
         when(tg_mock).get_peer_id(expected_channel.id).thenReturn(self.f_result(peer_id))
@@ -99,7 +99,7 @@ class TestTelethonTelegramApi(unittest.TestCase):
 
     @async_test
     async def test_get_channel_use_cached_peer_id(self):
-        expected_channel = Channel('channel_id', 'channel_title')
+        expected_channel = ChannelResponse('channel_id', 'channel_title')
         peer_id = 'peer_id'
         tg_mock = self.create_tg_mock()
         when(tg_mock).get_peer_id(expected_channel.id).thenReturn(self.f_result(peer_id))

@@ -4,7 +4,7 @@ from src.application.client import ClientPool
 from src.application.analytics import ChannelRelevanceEstimator
 from src.infrastructure.logging import logger
 from src.infrastructure.storage import Storage, StoredItem
-from src.infrastructure.telegram import Message
+from src.infrastructure.telegram import MessageResponse
 
 
 class ChannelItemStatus(Enum):
@@ -116,7 +116,7 @@ class SnowballChannelSearch:
 
 class StoredMessage(StoredItem):
     
-    def __init__(self, message: Message):
+    def __init__(self, message: MessageResponse):
         self._value = {
             'id': message.message_id,
             'channel_id': message.channel_id,
@@ -136,7 +136,7 @@ class StoredMessage(StoredItem):
 
 class StoredChannelLink(StoredItem):
     
-    def __init__(self, channel_id: str, channel_fwd_from_id: str, message: Message):
+    def __init__(self, channel_id: str, channel_fwd_from_id: str, message: MessageResponse):
         self._value = {
             'id': f'{channel_id}_{message.message_id}',
             'channel_id': channel_id,

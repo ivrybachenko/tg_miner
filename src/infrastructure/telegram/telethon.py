@@ -3,7 +3,7 @@ from telethon.types import PeerChannel
 import time
 from .api import TelegramApi
 from ..cache import Cache
-from .model import Channel, Message
+from .model import ChannelResponse, MessageResponse
 from src.infrastructure.logging import logger
 
 
@@ -44,11 +44,11 @@ class TelethonTelegramApi(TelegramApi):
     async def authorize(self):
         await self._client.start()
 
-    async def get_channel(self, channel_id: str) -> Channel:
+    async def get_channel(self, channel_id: str) -> ChannelResponse:
         peer_id = await self._get_peer_id(channel_id) 
         return await self._get_channel_by_peer_id(PeerChannel(peer_id))
 
-    async def _get_channel_by_peer_id(self, peer_id: PeerChannel) -> Channel:
+    async def _get_channel_by_peer_id(self, peer_id: PeerChannel) -> ChannelResponse:
         cached_value = self._cache.get(self._CHANNEL_BY_PEER_ID_CACHE_TYPE, peer_id.channel_id)
         if cached_value is not None:
             return cached_value
@@ -56,12 +56,12 @@ class TelethonTelegramApi(TelegramApi):
             logger.info(f'GET_ENTITY_BY_PEER_ID: {peer_id.channel_id}')
             time.sleep(1)
             channel = await self._client.get_entity(peer_id)
-        channel = Channel(channel.username, channel.title)
+        channel = ChannelResponse(channel.username, channel.title)
         self._cache.store(self._CHANNEL_BY_PEER_ID_CACHE_TYPE, peer_id.channel_id, channel, self._CHANNEL_BY_PEER_ID_TTL_SECONDS)
         return channel
 
 
-    async def get_messages(self, channel_id: str, count: int) -> list[Message]:
+    async def get_messages(self, channel_id: str, count: int) -> list[MessageResponse]:
         peer_id = await self._get_peer_id(channel_id)
         async with self._client:
             logger.info(f'GET_MESSAGES: {channel_id}')
@@ -72,7 +72,7 @@ class TelethonTelegramApi(TelegramApi):
             )
         # TODO Handle exceptions from Telegram. Some channels are forbidden for scraping. 
         return [
-            Message(
+            MessageResponse(
                 message_id=x.id, 
                 text=x.text,
                 channel_id=(await self._get_channel_by_peer_id(x.peer_id)).channel_id,

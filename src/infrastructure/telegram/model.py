@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 
 @dataclass
-class Channel:
+class ChannelResponse:
     # Unique channel identifier.
     channel_id: str
     # Human readable channel title.
     title: str
 
 @dataclass
-class Message:
+class MessageResponse:
     # Unique message identifier.
     message_id: int
     # Message text.
