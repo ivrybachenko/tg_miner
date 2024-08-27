@@ -1,12 +1,16 @@
 # About  
-This project is used to collect data from Telegram channels.
+This project is used to collect data from Telegram channels.  
+
+The scraper is designed to be extensible in adding new `Searches` and new `Storages`.  
+`Search` is a script to iterate over desired Telegram channels and choose which data should be stored. `Searches` are located in `src/application/search` directory.  
+`Storage` is an adapter which accepts data row-by-row and persists it. `Storages` are located in `src/application/storage` directory.  
 
 
 # How to run  
 1. Install requirements with `pip install -r requirements.txt`
 2. Copy `properties/clients.properties.dist` to `properties/clients.properties`.
 3. Fill valid credentials into properties file. Be careful not to publish your credentials to github.
-4. Modify `run.py` for your needs.
+4. Modify `run.py` for your needs. Create your custom `Search` or `Storage` if needed.
 5. Run program with `python run.py`
 
 
