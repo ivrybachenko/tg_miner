@@ -12,6 +12,7 @@ class ChannelMessagesSearch(Search):
     _storage: Storage = None
     _channel_id: str = None
     _max_message_count: int = None
+    _error_id: int = 0
 
     def __init__(self, client_pool: ClientPool, 
                         storage: Storage, 
@@ -24,11 +25,21 @@ class ChannelMessagesSearch(Search):
         self._max_message_count = max_message_count
 
     async def start(self):
-        messages = await self._client_pool.get().get_messages(
-            self._channel_id, 
-            count=self._max_message_count
-        )
         # TODO Do search iteratively.
+        try:
+            messages = await self._client_pool.get().get_messages(
+                self._channel_id, 
+                count=self._max_message_count
+            )
+        except Exception as e:
+            messages = []
+            self._storage.save(StoredGetMessageError(
+                self._error_id, 
+                self._channel_id,
+                self._max_message_count, 
+                e
+            ))
+            self._error_id = self._error_id + 1
         for message in messages:
             self._storage.save(StoredMessage(message))
 
@@ -64,4 +75,32 @@ class StoredMessage(StoredItem):
         return False
     
     def __str__(self):
-        return str(self._value)
+        return self.get_type() + '=' + str(self._value)
+
+
+class StoredGetMessageError(StoredItem):
+    
+    def __init__(self, error_id, channel_id, max_message_count, ex):
+        self._value = {
+            'id': str(error_id),
+            'channel_id': str(channel_id),
+            'max_message_count': str(max_message_count),
+            'exception': str(ex)
+        }
+
+    def get_type(self) -> str:
+        return 'get_message_error'
+
+    def get_key(self) -> str:
+        return 'error_id'
+        
+    def get_value(self) -> dict[str, str]:
+        return self._value
+    
+    def __eq__(self, other):
+        if isinstance(other, StoredGetMessageError):
+            return self._value == other._value
+        return False
+    
+    def __str__(self):
+        return self.get_type() + '=' + str(self._value)
