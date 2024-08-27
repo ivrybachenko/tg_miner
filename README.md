@@ -2,8 +2,12 @@
 This project is used to collect data from Telegram channels.  
 
 The scraper is designed to be extensible in adding new `Searches` and new `Storages`.  
-`Search` is a script to iterate over desired Telegram channels and choose which data should be stored. `Searches` are located in `src/application/search` directory.  
-`Storage` is an adapter which accepts data row-by-row and persists it. `Storages` are located in `src/application/storage` directory.  
+
+`Search` is a script to iterate over desired Telegram channels and choose which data should be stored.  
+`Searches` are located in `src/application/search` directory.  
+
+`Storage` is an adapter which accepts data row-by-row and persists it.  
+`Storages` are located in `src/application/storage` directory.  
 
 
 # How to run  
