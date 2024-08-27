@@ -1,1 +1,1 @@
-from .telegram_mocker import TelegramMocker
+from .telegram_mock import TelegramApiMock

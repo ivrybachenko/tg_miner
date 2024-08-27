@@ -23,7 +23,10 @@ class ChannelMessagesSearch:
         self._max_message_count = max_message_count
 
     async def start(self):
-        messages = await self._client_pool.get().get_messages(self._channel_id, count=10)
+        messages = await self._client_pool.get().get_messages(
+            self._channel_id, 
+            count=self._max_message_count
+        )
         # TODO Do search iteratively.
         for message in messages:
             self._storage.save(StoredMessage(message))
@@ -31,12 +34,19 @@ class ChannelMessagesSearch:
 
 class StoredMessage(StoredItem):
     
-    def __init__(self, message: MessageResponse):
-        self._value = {
-            'id': message.message_id,
-            'channel_id': message.channel_id,
-            'text': message.text
-        }    
+    def __init__(self, message: MessageResponse|dict[str,str]):
+        if isinstance(message, MessageResponse):
+            self._value = {
+                'id': message.message_id,
+                'channel_id': message.channel_id,
+                'text': message.text
+            }
+        elif isinstance(message, dict):
+            self._value = {
+                'id': message.get('id', None),
+                'channel_id': message.get('channel_id', None),
+                'text': message.get('text', None)
+            }
 
     def get_type(self) -> str:
         return 'message'
@@ -46,3 +56,11 @@ class StoredMessage(StoredItem):
         
     def get_value(self) -> dict[str, str]:
         return self._value
+    
+    def __eq__(self, other):
+        if isinstance(other, StoredMessage):
+            return self._value == other._value
+        return False
+    
+    def __str__(self):
+        return str(self._value)
