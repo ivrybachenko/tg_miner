@@ -1,6 +1,6 @@
 from src.infrastructure.logging import logger
 from src.infrastructure.cache import Cache
-from src.infrastructure.telegram import TelegramApi, TelethonTelegramApi
+from src.infrastructure.telegram import TelegramApi
 
 
 class Client:
@@ -10,17 +10,11 @@ class Client:
     name: str = None
     is_active: bool = False
     _api: TelegramApi = None
-    _cache: Cache = None
 
-    def __init__(self, client_name, api_id, api_hash, cache):
-        self._api = TelethonTelegramApi(client_name, api_id, api_hash, cache)
-        self._cache = cache
+    def __init__(self, client_name, api):
         self.name = client_name
-
-    def __init__(self, client_name, cache: Cache, api: TelethonTelegramApi):
+        self.is_active = False
         self._api = api
-        self._cache = cache
-        self.name = client_name
 
     async def activate(self):
         """

@@ -5,6 +5,7 @@ from src.application.analytics import ChannelRelevanceEstimator
 from src.infrastructure.logging import logger
 from src.infrastructure.storage import Storage, StoredItem
 from src.infrastructure.telegram import MessageResponse
+from .search import Search
 
 
 class ChannelItemStatus(Enum):
@@ -20,7 +21,7 @@ class ChannelItem:
     status: ChannelItemStatus
 
 
-class SnowballChannelSearch:
+class SnowballChannelSearch(Search):
     """
     Searches for relevant channels with snowball algorithm.
 
@@ -133,6 +134,9 @@ class StoredMessage(StoredItem):
     def get_value(self) -> dict[str, str]:
         return self._value
 
+    def __str__(self):
+        return self.get_type() + '=' + str(self._value)
+
 
 class StoredChannelLink(StoredItem):
     
@@ -154,6 +158,9 @@ class StoredChannelLink(StoredItem):
     def get_value(self) -> dict[str, str]:
         return self._value
 
+    def __str__(self):
+        return self.get_type() + '=' + str(self._value)
+
 
 class StoredChannelItem(StoredItem):
     
@@ -172,3 +179,6 @@ class StoredChannelItem(StoredItem):
 
     def get_value(self) -> dict[str, str]:
         return self._value
+
+    def __str__(self):
+        return self.get_type() + '=' + str(self._value)

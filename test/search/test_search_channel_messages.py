@@ -3,7 +3,6 @@ import asyncio
 import json
 from mockito import mock, verify, when, verifyNoMoreInteractions
 from src.infrastructure.storage import ConsoleStorage
-from src.infrastructure.cache import MemoryCache
 from src.application.search import ChannelMessagesSearch
 from src.application.search.channel_messages_search import StoredMessage
 from src.application.client import ClientPool, Client
@@ -29,8 +28,7 @@ class TestChannelMessagesSearch(unittest.TestCase):
         client_pool.add_client(
             Client(
                 client_name="client_1",
-                api=tg_mock,
-                cache=MemoryCache()
+                api=tg_mock
             )
         )
         await client_pool.activate_clients()

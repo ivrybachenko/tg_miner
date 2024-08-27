@@ -1,9 +1,10 @@
 from src.application.client import ClientPool
 from src.infrastructure.storage import Storage, StoredItem
 from src.infrastructure.telegram import MessageResponse
+from .search import Search
 
 
-class ChannelMessagesSearch:
+class ChannelMessagesSearch(Search):
     """
     Downloads messages from Telegram channel.
     """

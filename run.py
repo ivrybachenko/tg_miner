@@ -3,14 +3,15 @@ from src.application.analytics import ChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
 from src.application.search import SnowballChannelSearch, ChannelMessagesSearch
-from src.infrastructure.storage import CsvStorage
+from src.infrastructure.storage import CsvStorage, ConsoleStorage
 from src.infrastructure.logging import logger
 
 async def main():
     """
     Application entrypoint. 
     """
-    storage = CsvStorage('out')
+    # storage = CsvStorage('out')
+    storage = ConsoleStorage()
     client_pool = ClientPool()
     client_factory = ClientFactory()
     for client in client_factory.read_clients_from_properties('properties/clients.properties'):

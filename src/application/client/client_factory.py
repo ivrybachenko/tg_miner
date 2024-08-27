@@ -1,6 +1,7 @@
 import configparser
 from src.infrastructure.cache import MemoryCache
 from src.infrastructure.logging import logger
+from src.infrastructure.telegram import TelethonTelegramApi
 from .client import Client
 
 class ClientFactory:
@@ -28,6 +29,6 @@ class ClientFactory:
         for client_name in client_config.sections():
             api_id = client_config.get(client_name, 'api_id')
             api_hash = client_config.get(client_name, 'api_hash')
-            client = Client(client_name, api_id, api_hash, self._cache)
+            client = Client(client_name, TelethonTelegramApi(client_name, api_id, api_hash, self._cache))
             clients.append(client)
         return clients
