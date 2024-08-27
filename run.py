@@ -38,15 +38,7 @@ async def main():
     )
     await search.start()
     logger.info('Search finished.')
-
-    # channel = await client_pool.get().get_channel('cb_economics')
-    # logger.info(channel)
-    # storage.save_channel(channel)
-    # channel = await client_pool.get().get_channel('economica')
-    # storage.save_channel(channel)
-    # messages = await client_pool.get().get_messages('cb_economics')
-    # for m in messages:
-    #     storage.save_message(m)
+    
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
