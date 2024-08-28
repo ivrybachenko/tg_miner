@@ -1,6 +1,5 @@
 from telethon import TelegramClient
 from telethon.types import PeerChannel
-import time
 from .api import TelegramApi
 from ..cache import Cache
 from .model import ChannelResponse, MessageResponse
@@ -54,7 +53,6 @@ class TelethonTelegramApi(TelegramApi):
             return cached_value
         async with self._client:
             logger.info(f'GET_ENTITY_BY_PEER_ID: {peer_id.channel_id}')
-            time.sleep(1)
             channel = await self._client.get_entity(peer_id)
         channel = ChannelResponse(channel.username, channel.title)
         self._cache.store(self._CHANNEL_BY_PEER_ID_CACHE_TYPE, peer_id.channel_id, channel, self._CHANNEL_BY_PEER_ID_TTL_SECONDS)
@@ -70,7 +68,6 @@ class TelethonTelegramApi(TelegramApi):
         peer_id = await self._get_peer_id(channel_id)
         async with self._client:
             logger.info(f'GET_MESSAGES: {channel_id}')
-            time.sleep(1)
             messages = await self._client.get_messages(
                 entity=peer_id, 
                 limit=limit,
@@ -109,8 +106,6 @@ class TelethonTelegramApi(TelegramApi):
         if cached_value is not None:
             return cached_value
         async with self._client:
-            logger.info(f'GET_PEER_ID: {channel_id}')
-            time.sleep(1)
             peer_id = await self._client.get_peer_id(channel_id)
             self._cache.store(
                 entity_type=self._PEER_ID_CACHE_TYPE, 

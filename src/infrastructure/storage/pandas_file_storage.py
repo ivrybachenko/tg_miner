@@ -19,7 +19,7 @@ class ON_CONFLICT_MODE(Enum):
 
 class PandasFileStorage(Storage, ABC):
     """
-    Stores result into CSV files.
+    Stores result into files.
     """
     _out_dir = None
     _on_conflict = None
@@ -32,7 +32,7 @@ class PandasFileStorage(Storage, ABC):
         Parameters
         ----------
         out_dir: str
-            Directory where CSV files will be stored.
+            Directory where files will be stored.
         """
         self._out_dir = out_dir
         self._on_conflict = on_conflict

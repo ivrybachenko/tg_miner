@@ -1,16 +1,18 @@
 import asyncio
+from timeit import default_timer as timer
+from datetime import timedelta
 from src.application.analytics import ChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
 from src.application.search import SnowballChannelSearch, ChannelMessagesSearch
-from src.infrastructure.storage import TsvStorage, ConsoleStorage
+from src.infrastructure.storage import FastTsvStorage, ConsoleStorage
 from src.infrastructure.logging import logger
 
 async def main():
     """
     Application entrypoint. 
     """
-    storage = TsvStorage('out')
+    storage = FastTsvStorage('out')
     # storage = ConsoleStorage()
     client_pool = ClientPool()
     client_factory = ClientFactory()
@@ -24,10 +26,12 @@ async def main():
         storage=storage,
         channel_id='cb_economics', 
         max_message_count=1000,
-        message_batch_size=100,
+        message_batch_size=400,
     )
+    start = timer()
     await search.start()
-    logger.info(f'Search finished.')
+    end = timer()
+    logger.info(f'Search finished. Elapsed time: {timedelta(seconds=end-start)}')
 
     # search = SnowballChannelSearch(
     #     client_pool=client_pool, 
