@@ -4,7 +4,7 @@ from datetime import timedelta
 from src.application.analytics import ChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
-from src.application.search import SnowballChannelSearch, ChannelMessagesSearch
+from src.application.search import SnowballChannelSearch, ChannelMessagesSearch, KeywordMessageFilter
 from src.infrastructure.storage import FastTsvStorage, ConsoleStorage
 from src.infrastructure.logging import logger
 
@@ -26,7 +26,8 @@ async def main():
         storage=storage,
         channel_id='cb_economics', 
         max_message_count=1000,
-        message_batch_size=400,
+        message_batch_size=100,
+        filter=KeywordMessageFilter(['центробанк', 'цб'])
     )
     start = timer()
     await search.start()

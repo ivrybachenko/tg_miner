@@ -1,8 +1,37 @@
+from abc import ABC, abstractmethod
 from src.application.client import ClientPool
 from src.infrastructure.storage import Storage, StoredItem
 from src.infrastructure.telegram import MessageResponse
 from src.infrastructure.logging import logger
 from .search import Search
+
+
+class MessageFilter(ABC):
+    @abstractmethod
+    def match(self, message: MessageResponse) -> bool:
+        pass
+
+
+class AllMessageFilter(MessageFilter):
+    def match(self, message: MessageResponse) -> bool:
+        return True
+
+
+class KeywordMessageFilter(MessageFilter):
+
+    _keywords = []
+
+    def __init__(self, keywords: list[str]):
+        self._keywords = [x.lower() for x in keywords]
+
+    def match(self, message: MessageResponse) -> bool:
+        if message.text is None:
+            return False
+        text_lower = message.text.lower()
+        for kw in self._keywords:
+            if kw in text_lower:
+                return True
+        return False
 
 
 class ChannelMessagesSearch(Search):
@@ -15,19 +44,22 @@ class ChannelMessagesSearch(Search):
     _max_message_count: int = None
     _error_id: int = 0
     _message_batch_size: int = 0
+    _filter: MessageFilter = None
 
     def __init__(self, 
                  client_pool: ClientPool, 
                  storage: Storage, 
                  channel_id: str, 
                  max_message_count: int,
-                 message_batch_size: int
+                 message_batch_size: int,
+                 filter: MessageFilter,
                 ):
         self._client_pool = client_pool
         self._storage = storage
         self._channel_id = channel_id
         self._max_message_count = max_message_count
         self._message_batch_size = message_batch_size
+        self._filter = filter
 
     async def start(self):
         offset_id=0
@@ -35,13 +67,13 @@ class ChannelMessagesSearch(Search):
         total_messages=0
         while True:
             logger.info(f'Total messages: {total_messages}')
-            messages = await self._download_batch(self._message_batch_size, offset_id, add_offset)
-            total_messages += len(messages)
-            if len(messages) == 0 or total_messages>=self._max_message_count:
+            result = await self._download_batch(self._message_batch_size, offset_id, add_offset)
+            total_messages += result['size']
+            if result['size'] == 0 or total_messages>=self._max_message_count:
                 break
-            offset_id = messages[-1].message_id
+            offset_id = result['last_message_id']
     
-    async def _download_batch(self, batch_size, offset_id, add_offset) -> list[MessageResponse]:
+    async def _download_batch(self, batch_size, offset_id, add_offset):
         try:
             messages = await self._client_pool.get().get_messages(
                 self._channel_id, 
@@ -49,11 +81,16 @@ class ChannelMessagesSearch(Search):
                 offset_id=offset_id,
                 add_offset=add_offset
             )
+            stats = {
+                'last_message_id': messages[-1].message_id,
+                'size': len(messages)
+            }
+            messages = [m for m in messages if self._filter.match(m)]
             for message in messages:
                 if message.text is not None:
                     message.text = message.text.replace('\n', r'\n')
                 self._storage.save(StoredMessage(message))
-            return messages
+            return stats
         except Exception as e:
             self._storage.save(StoredGetMessageError(
                 self._error_id, 
