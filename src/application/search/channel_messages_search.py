@@ -52,7 +52,7 @@ class ChannelMessagesSearch(Search):
                  channel_id: str, 
                  max_message_count: int,
                  message_batch_size: int,
-                 filter: MessageFilter,
+                 filter: MessageFilter = AllMessageFilter(),
                 ):
         self._client_pool = client_pool
         self._storage = storage
@@ -68,10 +68,12 @@ class ChannelMessagesSearch(Search):
         while True:
             logger.info(f'Total messages: {total_messages}')
             result = await self._download_batch(self._message_batch_size, offset_id, add_offset)
+            if result is None: 
+                break
             total_messages += result['size']
+            offset_id = result['last_message_id']
             if result['size'] == 0 or total_messages>=self._max_message_count:
                 break
-            offset_id = result['last_message_id']
     
     async def _download_batch(self, batch_size, offset_id, add_offset):
         try:
@@ -81,6 +83,11 @@ class ChannelMessagesSearch(Search):
                 offset_id=offset_id,
                 add_offset=add_offset
             )
+            if len(messages) == 0:
+                return {
+                    'last_message_id': None,
+                    'size': len(messages)
+                }
             stats = {
                 'last_message_id': messages[-1].message_id,
                 'size': len(messages)
@@ -102,7 +109,7 @@ class ChannelMessagesSearch(Search):
             ))
             logger.error(e)
             self._error_id = self._error_id + 1
-            return []
+            return None
 
 
 class StoredMessage(StoredItem):

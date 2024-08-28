@@ -25,9 +25,9 @@ async def main():
         client_pool = client_pool,
         storage=storage,
         channel_id='cb_economics', 
-        max_message_count=1000,
+        max_message_count=10000,
         message_batch_size=100,
-        filter=KeywordMessageFilter(['центробанк', 'цб'])
+        # filter=KeywordMessageFilter(['траснформ'])
     )
     start = timer()
     await search.start()
