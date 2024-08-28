@@ -1,6 +1,7 @@
 from src.application.client import ClientPool
 from src.infrastructure.storage import Storage, StoredItem
 from src.infrastructure.telegram import MessageResponse
+from src.infrastructure.logging import logger
 from .search import Search
 
 
@@ -13,35 +14,58 @@ class ChannelMessagesSearch(Search):
     _channel_id: str = None
     _max_message_count: int = None
     _error_id: int = 0
+    _message_batch_size: int = 0
 
-    def __init__(self, client_pool: ClientPool, 
-                        storage: Storage, 
-                        channel_id: str, 
-                        max_message_count: int
+    def __init__(self, 
+                 client_pool: ClientPool, 
+                 storage: Storage, 
+                 channel_id: str, 
+                 max_message_count: int,
+                 message_batch_size: int
                 ):
         self._client_pool = client_pool
         self._storage = storage
         self._channel_id = channel_id
         self._max_message_count = max_message_count
+        self._message_batch_size = message_batch_size
 
     async def start(self):
-        # TODO Do search iteratively.
+        offset_id=0
+        add_offset=0
+        total_messages=0
+        while True:
+            logger.info(f'Total messages: {total_messages}')
+            messages = await self._download_batch(self._message_batch_size, offset_id, add_offset)
+            total_messages += len(messages)
+            if len(messages) == 0 or total_messages>=self._max_message_count:
+                break
+            offset_id = messages[-1].message_id
+    
+    async def _download_batch(self, batch_size, offset_id, add_offset) -> list[MessageResponse]:
         try:
             messages = await self._client_pool.get().get_messages(
                 self._channel_id, 
-                count=self._max_message_count
+                limit=batch_size,
+                offset_id=offset_id,
+                add_offset=add_offset
             )
+            for message in messages:
+                if message.text is not None:
+                    message.text = message.text.replace('\n', r'\n')
+                self._storage.save(StoredMessage(message))
+            return messages
         except Exception as e:
-            messages = []
             self._storage.save(StoredGetMessageError(
                 self._error_id, 
                 self._channel_id,
-                self._max_message_count, 
+                batch_size, 
+                offset_id,
+                add_offset,
                 e
             ))
+            logger.error(e)
             self._error_id = self._error_id + 1
-        for message in messages:
-            self._storage.save(StoredMessage(message))
+            return []
 
 
 class StoredMessage(StoredItem):
@@ -80,11 +104,13 @@ class StoredMessage(StoredItem):
 
 class StoredGetMessageError(StoredItem):
     
-    def __init__(self, error_id, channel_id, max_message_count, ex):
+    def __init__(self, error_id, channel_id, limit, offset_id, add_offset, ex):
         self._value = {
-            'id': str(error_id),
+            'error_id': str(error_id),
             'channel_id': str(channel_id),
-            'max_message_count': str(max_message_count),
+            'limit': str(limit),
+            'offset_id': str(offset_id),
+            'add_offset': str(add_offset),
             'exception': str(ex)
         }
 

@@ -61,16 +61,22 @@ class TelethonTelegramApi(TelegramApi):
         return channel
 
 
-    async def get_messages(self, channel_id: str, count: int) -> list[MessageResponse]:
+    async def get_messages(self, 
+                           channel_id: str, 
+                           limit: int, 
+                           offset_id: int=None, 
+                           add_offset: int=None
+                          ) -> list[MessageResponse]:
         peer_id = await self._get_peer_id(channel_id)
         async with self._client:
             logger.info(f'GET_MESSAGES: {channel_id}')
             time.sleep(1)
             messages = await self._client.get_messages(
                 entity=peer_id, 
-                limit=count
+                limit=limit,
+                offset_id=offset_id,
+                add_offset=add_offset   
             )
-        # TODO Handle exceptions from Telegram. Some channels are forbidden for scraping. 
         return [
             MessageResponse(
                 message_id=x.id, 

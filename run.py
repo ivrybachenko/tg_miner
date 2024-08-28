@@ -3,15 +3,15 @@ from src.application.analytics import ChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
 from src.application.search import SnowballChannelSearch, ChannelMessagesSearch
-from src.infrastructure.storage import CsvStorage, ConsoleStorage
+from src.infrastructure.storage import TsvStorage, ConsoleStorage
 from src.infrastructure.logging import logger
 
 async def main():
     """
     Application entrypoint. 
     """
-    # storage = CsvStorage('out')
-    storage = ConsoleStorage()
+    storage = TsvStorage('out')
+    # storage = ConsoleStorage()
     client_pool = ClientPool()
     client_factory = ClientFactory()
     for client in client_factory.read_clients_from_properties('properties/clients.properties'):
@@ -23,7 +23,8 @@ async def main():
         client_pool = client_pool,
         storage=storage,
         channel_id='cb_economics', 
-        max_message_count=10
+        max_message_count=1000,
+        message_batch_size=100,
     )
     await search.start()
     logger.info(f'Search finished.')

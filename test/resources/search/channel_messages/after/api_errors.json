@@ -2,7 +2,9 @@
     {
         "error_id": 0,
         "channel_id": "channel_1",
-        "max_message_count": 6,
+        "limit": 6,
+        "offset_id": 0,
+        "add_offset": 0,
         "ex": "GET_MESSAGE error"
     }
 ]

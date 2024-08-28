@@ -15,8 +15,13 @@ class TelegramApiMock(TelegramApi):
     async def get_channel(self, channel_id: str) -> ChannelResponse:
         return self._channels[channel_id]['channel']
 
-    async def get_messages(self, channel_id: str, count: int) -> list[MessageResponse]:
-        return self._channels[channel_id]['messages'][:count]
+    async def get_messages(self, channel_id: str, limit: int, offset_id, add_offset) -> list[MessageResponse]:
+        messages = self._channels[channel_id]['messages']
+        start_index = 0
+        for i, m in enumerate(messages):
+            if m.message_id == offset_id:
+                start_index = i
+        return messages[start_index:start_index+min(limit, add_offset)]
     
     def add_channel(self, filename):
         with open(filename, 'r') as f:

@@ -31,7 +31,7 @@ class TestChannelMessagesSearch(unittest.TestCase):
         f.set_exception(exception)
         return f
 
-    async def create_search(self, storage, tg_api, limit):
+    async def create_search(self, storage, tg_api, limit, batch_size):
         client_pool = ClientPool()
         client_pool.add_client(
             Client(
@@ -44,7 +44,8 @@ class TestChannelMessagesSearch(unittest.TestCase):
             channel_id='channel_1',
             client_pool=client_pool,
             storage=storage,
-            max_message_count=limit
+            max_message_count=limit,
+            message_batch_size=batch_size
         )
 
     @async_test
@@ -53,7 +54,8 @@ class TestChannelMessagesSearch(unittest.TestCase):
         search = await self.create_search(
             storage,
             TelegramApiMock(['test/resources/search/channel_messages/before/channel_1.json']),
-            limit=5
+            limit=5,
+            batch_size=5
         )
         await search.start()
         self.verify_stored_messages(
@@ -69,7 +71,8 @@ class TestChannelMessagesSearch(unittest.TestCase):
         search = await self.create_search(
             storage,
             TelegramApiMock(['test/resources/search/channel_messages/before/channel_1.json']),
-            limit=3
+            limit=3,
+            batch_size=3
         )
         await search.start()
         self.verify_stored_messages(
@@ -85,7 +88,25 @@ class TestChannelMessagesSearch(unittest.TestCase):
         search = await self.create_search(
             storage,
             TelegramApiMock(['test/resources/search/channel_messages/before/channel_1.json']),
-            limit=6
+            limit=6,
+            batch_size=6
+        )
+        await search.start()
+        self.verify_stored_messages(
+            storage,
+            'test/resources/search/channel_messages/after/messages_all.json'
+        )
+        verifyNoMoreInteractions(storage)        
+        unstub()
+        
+    @async_test
+    async def test_batch_size_is_used(self):
+        storage = self.create_storage()
+        search = await self.create_search(
+            storage,
+            TelegramApiMock(['test/resources/search/channel_messages/before/channel_1.json']),
+            limit=5,
+            batch_size=2
         )
         await search.start()
         self.verify_stored_messages(
@@ -100,11 +121,12 @@ class TestChannelMessagesSearch(unittest.TestCase):
         storage = self.create_storage()
         tg_api = mock(TelegramApiMock(['test/resources/search/channel_messages/before/channel_1.json']))
         when(tg_api).authorize().thenCallOriginalImplementation()
-        when(tg_api).get_messages(any, any).thenRaise(Exception('GET_MESSAGE error'))
+        when(tg_api).get_messages(any, any, any, any).thenRaise(Exception('GET_MESSAGE error'))
         search = await self.create_search(
             storage,
             tg_api,
-            limit=6
+            limit=6,
+            batch_size=6
         )
         await search.start()
         self.verify_stored_errors(
@@ -146,7 +168,9 @@ class TestChannelMessagesSearch(unittest.TestCase):
                     channel_id=m['channel_id'],
                     error_id=m['error_id'],
                     ex=m['ex'],
-                    max_message_count=m['max_message_count']
+                    limit=m['limit'],
+                    offset_id=m['offset_id'],
+                    add_offset=m['add_offset']
                 )
                 for m in messages
             ]
