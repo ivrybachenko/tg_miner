@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 from src.application.client import ClientPool
 from src.infrastructure.storage import Storage, StoredItem
@@ -62,20 +63,38 @@ class ChannelMessagesSearch(Search):
         self._filter = filter
 
     async def start(self):
+        if self._client_pool.get_size() == 0:
+            raise Exception('Pool has no active clients. Unable to run search.')
         offset_id=0
         add_offset=0
         total_messages=0
         while True:
             logger.info(f'Total messages: {total_messages}')
-            result = await self._download_batch(self._message_batch_size, offset_id, add_offset)
-            if result is None: 
-                break
-            total_messages += result['size']
-            offset_id = result['last_message_id']
-            if result['size'] == 0 or total_messages>=self._max_message_count:
-                break
+            try:
+                results = await asyncio.gather(
+                    *[
+                        self._download_batch(self._message_batch_size, offset_id, i*self._message_batch_size)
+                        for i in range(self._client_pool.get_size())
+                    ]
+                )
+            except Exception as e:
+                logger.error(e)
+            results = [x for x in results if x is not None]
+            if len(results) == 0: 
+                return
+            for result in results: 
+                total_messages += result['size']
+                if result['size'] != 0:
+                    if offset_id == 0:
+                        offset_id = result['last_message_id']
+                    offset_id = min(offset_id, result['last_message_id'])
+                if result['size'] == 0 or total_messages>=self._max_message_count:
+                    return
     
     async def _download_batch(self, batch_size, offset_id, add_offset):
+        if offset_id == 0 and add_offset != 0:
+            # We don't want to get the first batch multiple times
+            return None
         try:
             messages = await self._client_pool.get().get_messages(
                 self._channel_id, 
@@ -99,6 +118,7 @@ class ChannelMessagesSearch(Search):
                 self._storage.save(StoredMessage(message))
             return stats
         except Exception as e:
+            logger.error(e)
             self._storage.save(StoredGetMessageError(
                 self._error_id, 
                 self._channel_id,
@@ -107,7 +127,6 @@ class ChannelMessagesSearch(Search):
                 add_offset,
                 e
             ))
-            logger.error(e)
             self._error_id = self._error_id + 1
             return None
 

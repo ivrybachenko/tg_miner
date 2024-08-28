@@ -14,13 +14,16 @@ class ClientPool:
     def add_client(self, client: Client):
         self._clients.append(client)
 
+    def get_size(self):
+        return len(self.get_active_clients())
+
     def get_active_clients(self):
         """
         Returns the list of active clients.
         """
         return [x for x in self._clients if x.is_active]
     
-    async def activate_clients(self):
+    async def activate_clients(self, fail_on_error: bool = True):
         """
         Ensures that each client is ready for API calls. 
         """
@@ -39,6 +42,8 @@ class ClientPool:
             } 
             for client in self._clients
         ])
+        if count_active != total_count and fail_on_error:
+            raise Exception('Not all clients were succesfully activated.')
         
     def get(self) -> Client:
         """
@@ -48,5 +53,5 @@ class ClientPool:
         if len(active_clients) == 0:
             raise Exception('No active clients available.')
         next_client = active_clients[self._next_client_index]
-        self.next_client_index = (self._next_client_index + 1) % len(active_clients)
+        self._next_client_index = (self._next_client_index + 1) % len(active_clients)
         return next_client

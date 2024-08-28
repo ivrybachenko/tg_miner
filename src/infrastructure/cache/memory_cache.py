@@ -19,5 +19,5 @@ class MemoryCache(Cache):
     def get(self, entity_type, entity_id):
         if entity_type not in self._storage:
             self._storage[entity_type] = {}
-        logger.info(f'CACHE get {entity_type} {entity_id}')
+        # logger.info(f'CACHE get {entity_type} {entity_id}')
         return self._storage[entity_type].get(entity_id, None)
