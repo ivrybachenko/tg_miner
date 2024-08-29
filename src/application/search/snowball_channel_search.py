@@ -1,17 +1,20 @@
+import asyncio
 from dataclasses import dataclass
 from enum import Enum
 from src.application.client import ClientPool
 from src.application.analytics import ChannelRelevanceEstimator
 from src.infrastructure.logging import logger
 from src.infrastructure.storage import Storage, StoredItem
-from src.infrastructure.telegram import MessageResponse
+from src.infrastructure.telegram import MessageResponse, ChannelResponse
 from .search import Search
 
 
 class ChannelItemStatus(Enum):
+    QUEUED_FOR_LOADING = 0
     RELEVANCE_UNKNOWN = 1
     QUEUED_FOR_ANCESTORS_SEARCH = 2
     FINISHED = 3
+    ERROR = 4
 
 
 @dataclass
@@ -39,6 +42,7 @@ class SnowballChannelSearch(Search):
     _channels: dict[str, ChannelItem] = {}
     _max_channels_count = None
     _number_of_messages_for_ancestor_search = None
+    _save_messages = False
 
     def __init__(self, 
                  client_pool: ClientPool, 
@@ -46,26 +50,31 @@ class SnowballChannelSearch(Search):
                  relevance_estimator: ChannelRelevanceEstimator, 
                  start_channels: list[str],
                  max_channels_count: int,
-                 number_of_messages_for_ancestor_search: int
+                 number_of_messages_for_ancestor_search: int,
+                 save_messages=False
                  ):
         self._client_pool = client_pool
         self._storage = storage
         self._relevance_estimator = relevance_estimator
         self._max_channels_count = max_channels_count
         self._number_of_messages_for_ancestor_search = number_of_messages_for_ancestor_search
+        self._save_messages = save_messages
         for x in start_channels:
             self._enqueue_channel(x)
 
     def _enqueue_channel(self, channel_id: str):
         logger.info(f'Found new channel: {channel_id}')
-        channel = ChannelItem(channel_id, None, ChannelItemStatus.RELEVANCE_UNKNOWN)
+        channel = ChannelItem(channel_id, None, ChannelItemStatus.QUEUED_FOR_LOADING)
         self._channels[channel_id] = channel
         self._storage.save(StoredChannelItem(channel))
 
     async def start(self):
+        if self._client_pool.get_size() == 0:
+            raise Exception('Pool has no active clients. Unable to run search.')
         i = 0
         while not self._is_finished():
             logger.info(f'Step {i}. Total number of chanels: {len(self._channels)}')
+            await self._load_channels()
             await self._update_relevance()
             await self._search_ancestors()
             i += 1
@@ -73,44 +82,77 @@ class SnowballChannelSearch(Search):
         # TODO Should not return the whole list. 
         # Should either yield row-by-row or save directly to storage. 
         return self._channels 
-            
+
+    async def _load_channels(self):
+        logger.info('Loading titles...')
+        channels = [x for x in self._channels.values() if x.status==ChannelItemStatus.QUEUED_FOR_LOADING]
+        for channel in channels:
+            # Commented because of the bag in MemoryCache
+            # try:
+            #     channel_response = await self._client_pool.get().get_channel(channel.channel_id)
+            # except:
+            channel_response = ChannelResponse(
+                channel_id=channel.channel_id,
+                title=None
+            )
+            channel.status = ChannelItemStatus.RELEVANCE_UNKNOWN
+            self._storage.save(StoredChannelItem(channel)) 
+            self._storage.save(StoredChannel(channel_response))
+
     async def _update_relevance(self):
         logger.info('Updating relevance...')
         channels = [x for x in self._channels.values() if x.status==ChannelItemStatus.RELEVANCE_UNKNOWN]
         for channel in channels:
             channel.relevance = await self._relevance_estimator.get_relevance(channel.channel_id)
             channel.status = ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH
-            self._storage.save(StoredChannelItem(channel))
+            self._storage.save(StoredChannelItem(channel)) 
 
     async def _search_ancestors(self):
         logger.info('Searching ancestors...')
-        next_channel = None
-        max_relevance = -1
-        for channel in self._channels.values():
-            if channel.status != ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH:
-                continue
-            if channel.relevance > max_relevance:
-                max_relevance = channel.relevance
-                next_channel = channel
-        messages = await self._client_pool.get().get_messages(
-            next_channel.channel_id, 
-            count=self._number_of_messages_for_ancestor_search
+        next_channels = self._choose_channels_to_search_ancestors(self._client_pool.get_size())
+        next_channels = [x for x in next_channels if x is not None]
+        await asyncio.gather(
+            *[
+                self._search_ancestors_in_channel(x) 
+                    for x in next_channels if x is not None
+            ]
         )
-        for m in messages:
-            child_channel_id = m.channel_fwd_from_id
-            if child_channel_id is None:
-                continue
-            self._storage.save(StoredChannelLink(next_channel.channel_id, child_channel_id, m))
-            self._storage.save(StoredMessage(m))
-            if child_channel_id not in self._channels:
-                self._enqueue_channel(child_channel_id)
-        next_channel.status = ChannelItemStatus.FINISHED
-        self._storage.save(StoredChannelItem(next_channel))
+
+    def _choose_channels_to_search_ancestors(self, count) -> ChannelItem:
+        queue = [x for x in self._channels.values() if x.status == ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH]
+        return queue[:count]
+
+    async def _search_ancestors_in_channel(self, channel: ChannelItem):
+        try:
+            messages = await self._client_pool.get().get_messages(
+                channel.channel_id, 
+                limit=self._number_of_messages_for_ancestor_search,
+                offset_id=0,
+                add_offset=0
+            )
+            for m in messages:
+                child_channel_id = m.channel_fwd_from_id
+                if child_channel_id is None:
+                    continue
+                self._storage.save(StoredChannelLink(channel.channel_id, child_channel_id, m))
+                if self._save_messages:
+                    self._storage.save(StoredMessage(m))
+                if child_channel_id not in self._channels:
+                    self._enqueue_channel(child_channel_id)
+            channel.status = ChannelItemStatus.FINISHED
+            self._storage.save(StoredChannelItem(channel))
+        except Exception as e:
+            logger.error(f'Failed to load channel {channel.channel_id}: {e}')
+            channel.status = ChannelItemStatus.ERROR
+            self._storage.save(StoredChannelItem(channel))
 
     def _is_finished(self):
         if len(self._channels) >= self._max_channels_count:
             return True
-        if len([x for x in self._channels.values() if x.status!=ChannelItemStatus.FINISHED]) == 0:
+        if len([
+            x for x in self._channels.values() 
+            if x.status!=ChannelItemStatus.FINISHED and x.status!=ChannelItemStatus.ERROR
+        ]) == 0:
             return True
         return False
 
@@ -173,6 +215,27 @@ class StoredChannelItem(StoredItem):
 
     def get_type(self) -> str:
         return 'channel_item'
+    
+    def get_key(self) -> str:
+        return 'id'
+
+    def get_value(self) -> dict[str, str]:
+        return self._value
+
+    def __str__(self):
+        return self.get_type() + '=' + str(self._value)
+
+
+class StoredChannel(StoredItem):
+    
+    def __init__(self, channel: ChannelResponse):
+        self._value = {
+            'id': channel.channel_id,
+            'title': channel.title
+        }    
+
+    def get_type(self) -> str:
+        return 'channel'
     
     def get_key(self) -> str:
         return 'id'

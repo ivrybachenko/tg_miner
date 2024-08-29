@@ -33,7 +33,7 @@ class FastTsvStorage(Storage):
                 f.write(header)
                 f.write('\r\n')
         with open(filename, 'a') as f:
-                row = '\t'.join([str(x) for x in item.get_value().values()])
+                row = '\t'.join([str(x).replace('\n', r'\n') for x in item.get_value().values()])
                 f.write(row)
                 f.write('\r\n')
 

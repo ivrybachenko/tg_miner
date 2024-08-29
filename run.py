@@ -21,29 +21,32 @@ async def main():
     await client_pool.activate_clients()
     logger.info('Application is ready.')
 
-    search = ChannelMessagesSearch(
-        client_pool = client_pool,
+    # search = ChannelMessagesSearch(
+    #     client_pool = client_pool,
+    #     storage=storage,
+    #     channel_id='cb_economics', 
+    #     max_message_count=10000,
+    #     message_batch_size=100,
+    #     # filter=KeywordMessageFilter(['траснформ'])
+    # )
+    # start = timer()
+    # await search.start()
+    # end = timer()
+    # logger.info(f'Search finished. Elapsed time: {timedelta(seconds=end-start)}')
+
+    search = SnowballChannelSearch(
+        client_pool=client_pool, 
         storage=storage,
-        channel_id='cb_economics', 
-        max_message_count=10000,
-        message_batch_size=100,
-        # filter=KeywordMessageFilter(['траснформ'])
+        relevance_estimator=ChannelRelevanceEstimator(),
+        start_channels=['cb_economics'],
+        max_channels_count=10000,
+        number_of_messages_for_ancestor_search=1000,
+        save_messages=False
     )
     start = timer()
     await search.start()
     end = timer()
     logger.info(f'Search finished. Elapsed time: {timedelta(seconds=end-start)}')
-
-    # search = SnowballChannelSearch(
-    #     client_pool=client_pool, 
-    #     storage=storage,
-    #     relevance_estimator=ChannelRelevanceEstimator(),
-    #     start_channels=['cb_economics'],
-    #     max_channels_count=100,
-    #     number_of_messages_for_ancestor_search=10
-    # )
-    # await search.start()
-    # logger.info('Search finished.')
     
 
 loop = asyncio.get_event_loop()
