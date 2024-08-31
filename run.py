@@ -41,7 +41,7 @@ async def main():
         start_channels=['cb_economics'],
         max_channels_count=10000,
         number_of_messages_for_ancestor_search=1000,
-        save_messages=False
+        save_messages=True
     )
     start = timer()
     await search.start()

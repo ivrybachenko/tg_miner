@@ -44,6 +44,7 @@ class SnowballChannelSearch(Search):
     _max_channels_count = None
     _number_of_messages_for_ancestor_search = None
     _save_messages = False
+    _forwarded_messages_count = 0
 
     def __init__(self, 
                  client_pool: ClientPool, 
@@ -84,8 +85,6 @@ class SnowballChannelSearch(Search):
             await self._search_ancestors()
             i += 1
         logger.info(f'Step {i}. Total number of chanels: {len(self._channels)}')
-        # TODO Should not return the whole list. 
-        # Should either yield row-by-row or save directly to storage. 
         return self._channels 
 
     async def _load_channels(self):
@@ -138,8 +137,9 @@ class SnowballChannelSearch(Search):
                 if child_channel_id is None:
                     continue
                 self._storage.save(StoredChannelLink(channel.channel_id, child_channel_id, m))
+                self._forwarded_messages_count += 1
                 if self._save_messages:
-                    self._storage.save(StoredMessage(m))
+                    self._storage.save(StoredMessage(m, self._forwarded_messages_count))
                 if child_channel_id not in self._channels:
                     self._enqueue_channel(child_channel_id)
             self._change_status(channel, ChannelItemStatus.FINISHED)
@@ -160,16 +160,19 @@ class SnowballChannelSearch(Search):
 
 class StoredMessage(StoredItem):
     
-    def __init__(self, message: MessageResponse):
+    _MESSAGES_IN_BUCKET = 10000 # buckets are used to limit the file size
+
+    def __init__(self, message: MessageResponse, total_messages: int):
         self._value = {
             'message_id': message.message_id,
             'channel_id': message.channel_id,
             'text': message.text,
             'message_datetime': message.datetime
-        }    
+        }
+        self._bucket = total_messages // self._MESSAGES_IN_BUCKET
 
     def get_type(self) -> str:
-        return 'message'
+        return f'message_{self._bucket}'
 
     def get_key(self) -> str:
         return 'id'
