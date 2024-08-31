@@ -84,6 +84,8 @@ class SnowballChannelSearch(Search):
             await self._update_relevance()
             await self._search_ancestors()
             i += 1
+        await self._load_channels()
+        await self._update_relevance()
         logger.info(f'Step {i}. Total number of chanels: {len(self._channels)}')
         return self._channels 
 
@@ -122,7 +124,8 @@ class SnowballChannelSearch(Search):
 
     def _choose_channels_to_search_ancestors(self, count) -> ChannelItem:
         queue = [x for x in self._channels.values() if x.status == ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH]
-        return queue[:count]
+        queue = sorted(queue, key=lambda x: x.relevance)
+        return queue[-count:]
 
     async def _search_ancestors_in_channel(self, channel: ChannelItem):
         try:
@@ -213,6 +216,8 @@ class StoredChannelItem(StoredItem):
         }
         self._channel_status = channel.status
         if channel.status == ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH:
+            self._value['relevance'] = channel.relevance
+        if channel.status == ChannelItemStatus.FINISHED:
             self._value['relevance'] = channel.relevance
 
     def get_type(self) -> str:

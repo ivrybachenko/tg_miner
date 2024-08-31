@@ -1,7 +1,7 @@
 import asyncio
 from timeit import default_timer as timer
 from datetime import timedelta
-from src.application.analytics import ChannelRelevanceEstimator
+from src.application.analytics import KeywordChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
 from src.application.search import SnowballChannelSearch, ChannelMessagesSearch, KeywordMessageFilter
@@ -24,10 +24,10 @@ async def main():
     search = ChannelMessagesSearch(
         client_pool = client_pool,
         storage=storage,
-        channel_id='cb_economics', 
+        channel_id='rutube', 
         max_message_count=30000,
         message_batch_size=100,
-        # filter=KeywordMessageFilter(['траснформ'])
+        filter=KeywordMessageFilter(['траснформ', 'цифров', 'устойчив'])
     )
     start = timer()
     await search.start()
@@ -37,9 +37,20 @@ async def main():
     # search = SnowballChannelSearch(
     #     client_pool=client_pool, 
     #     storage=storage,
-    #     relevance_estimator=ChannelRelevanceEstimator(),
+    #     relevance_estimator=KeywordChannelRelevanceEstimator(
+    #         client_pool, 
+    #         keywords={
+    #             'цифр': 10, 
+    #             'трансформ': 10,
+    #             'устойчив': 7,
+    #             'развити': 5,
+    #             'эконом': 5,
+    #             'менедж': 5,
+    #             'компан': 1
+    #         }
+    #     ),
     #     start_channels=['cb_economics'],
-    #     max_channels_count=10000,
+    #     max_channels_count=50,
     #     number_of_messages_for_ancestor_search=1000,
     #     save_messages=True
     # )

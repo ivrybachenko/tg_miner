@@ -1,2 +1,2 @@
 from .similarity_estimator import SimilarityEstimator
-from .channel_relevance_estimator import ChannelRelevanceEstimator
+from .channel_relevance_estimator import ChannelRelevanceEstimator, KeywordChannelRelevanceEstimator
