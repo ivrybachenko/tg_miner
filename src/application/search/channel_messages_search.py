@@ -43,7 +43,6 @@ class ChannelMessagesSearch(Search):
     _storage: Storage = None
     _channel_id: str = None
     _max_message_count: int = None
-    _error_id: int = 0
     _message_batch_size: int = 0
     _filter: MessageFilter = None
 
@@ -120,14 +119,12 @@ class ChannelMessagesSearch(Search):
         except Exception as e:
             logger.error(e)
             self._storage.save(StoredGetMessageError(
-                self._error_id, 
                 self._channel_id,
                 batch_size, 
                 offset_id,
                 add_offset,
                 e
             ))
-            self._error_id = self._error_id + 1
             return None
 
 
@@ -136,22 +133,19 @@ class StoredMessage(StoredItem):
     def __init__(self, message: MessageResponse|dict[str,str]):
         if isinstance(message, MessageResponse):
             self._value = {
-                'id': message.message_id,
+                'message_id': message.message_id,
                 'channel_id': message.channel_id,
                 'text': message.text
             }
         elif isinstance(message, dict):
             self._value = {
-                'id': message.get('id', None),
+                'message_id': message.get('id', None),
                 'channel_id': message.get('channel_id', None),
                 'text': message.get('text', None)
             }
 
     def get_type(self) -> str:
         return 'message'
-
-    def get_key(self) -> str:
-        return 'id'
         
     def get_value(self) -> dict[str, str]:
         return self._value
@@ -167,9 +161,8 @@ class StoredMessage(StoredItem):
 
 class StoredGetMessageError(StoredItem):
     
-    def __init__(self, error_id, channel_id, limit, offset_id, add_offset, ex):
+    def __init__(self, channel_id, limit, offset_id, add_offset, ex):
         self._value = {
-            'error_id': str(error_id),
             'channel_id': str(channel_id),
             'limit': str(limit),
             'offset_id': str(offset_id),
@@ -179,9 +172,6 @@ class StoredGetMessageError(StoredItem):
 
     def get_type(self) -> str:
         return 'get_message_error'
-
-    def get_key(self) -> str:
-        return 'error_id'
         
     def get_value(self) -> dict[str, str]:
         return self._value

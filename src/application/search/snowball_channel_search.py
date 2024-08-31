@@ -162,10 +162,10 @@ class StoredMessage(StoredItem):
     
     def __init__(self, message: MessageResponse):
         self._value = {
-            'id': message.message_id,
+            'message_id': message.message_id,
             'channel_id': message.channel_id,
             'text': message.text,
-            'datetime': message.datetime
+            'message_datetime': message.datetime
         }    
 
     def get_type(self) -> str:
@@ -185,18 +185,14 @@ class StoredChannelLink(StoredItem):
     
     def __init__(self, channel_id: str, channel_fwd_from_id: str, message: MessageResponse):
         self._value = {
-            'id': f'{channel_id}_{message.message_id}',
             'channel_id': channel_id,
             'channel_fwd_from_id': channel_fwd_from_id,
             'message_id': message.message_id,
-            'datetime': message.datetime
+            'message_datetime': message.datetime
         }
     
     def get_type(self) -> str:
         return 'channel_link'
-
-    def get_key(self) -> str:
-        return 'id'
 
     def get_value(self) -> dict[str, str]:
         return self._value
@@ -209,7 +205,7 @@ class StoredChannelItem(StoredItem):
     
     def __init__(self, channel: ChannelItem):
         self._value = {
-            'id': channel.channel_id,
+            'channel_id': channel.channel_id,
             'datetime': datetime.now()
         }
         self._channel_status = channel.status
@@ -218,9 +214,6 @@ class StoredChannelItem(StoredItem):
 
     def get_type(self) -> str:
         return f'channel_{self._channel_status.name}'
-    
-    def get_key(self) -> str:
-        return 'id'
 
     def get_value(self) -> dict[str, str]:
         return self._value
@@ -233,15 +226,12 @@ class StoredChannel(StoredItem):
     
     def __init__(self, channel: ChannelResponse):
         self._value = {
-            'id': channel.channel_id,
+            'channel_id': channel.channel_id,
             'title': channel.title
         }    
 
     def get_type(self) -> str:
         return 'channel'
-    
-    def get_key(self) -> str:
-        return 'id'
 
     def get_value(self) -> dict[str, str]:
         return self._value

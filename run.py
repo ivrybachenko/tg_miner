@@ -5,14 +5,14 @@ from src.application.analytics import ChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
 from src.application.search import SnowballChannelSearch, ChannelMessagesSearch, KeywordMessageFilter
-from src.infrastructure.storage import FastTsvStorage, ConsoleStorage
+from src.infrastructure.storage import TsvStorage, ConsoleStorage
 from src.infrastructure.logging import logger
 
 async def main():
     """
     Application entrypoint. 
     """
-    storage = FastTsvStorage('out')
+    storage = TsvStorage('out')
     # storage = ConsoleStorage()
     client_pool = ClientPool()
     client_factory = ClientFactory()

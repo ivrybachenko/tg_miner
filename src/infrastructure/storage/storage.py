@@ -18,17 +18,6 @@ class StoredItem(ABC):
         pass
 
     @abstractmethod
-    def get_key(self) -> str:
-        """
-        str
-            Returns title of entity key.
-            If entity with same key and type is already present in storage,
-              then stored entity will be updated.
-        """
-        # TODO It would be cool to be able to make compound keys.
-        pass
-
-    @abstractmethod
     def get_value(self) -> dict[str, str]:
         """
         Returns
