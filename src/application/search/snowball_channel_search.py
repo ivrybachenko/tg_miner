@@ -1,6 +1,7 @@
 import asyncio
 from dataclasses import dataclass
 from enum import Enum
+from datetime import datetime
 from src.application.client import ClientPool
 from src.application.analytics import ChannelRelevanceEstimator
 from src.infrastructure.logging import logger
@@ -66,7 +67,11 @@ class SnowballChannelSearch(Search):
         logger.info(f'Found new channel: {channel_id}')
         channel = ChannelItem(channel_id, None, ChannelItemStatus.QUEUED_FOR_LOADING)
         self._channels[channel_id] = channel
-        self._storage.save(StoredChannelItem(channel))
+        self._change_status(channel, ChannelItemStatus.RELEVANCE_UNKNOWN)
+
+    def _change_status(self, channel_item: ChannelItem, status: ChannelItemStatus):
+        channel_item.status = status
+        self._storage.save(StoredChannelItem(channel_item))
 
     async def start(self):
         if self._client_pool.get_size() == 0:
@@ -95,17 +100,15 @@ class SnowballChannelSearch(Search):
                 channel_id=channel.channel_id,
                 title=None
             )
-            channel.status = ChannelItemStatus.RELEVANCE_UNKNOWN
-            self._storage.save(StoredChannelItem(channel)) 
-            self._storage.save(StoredChannel(channel_response))
+            # then I wanted to save channel title into file but currently I do not
+            self._change_status(channel, ChannelItemStatus.RELEVANCE_UNKNOWN)
 
     async def _update_relevance(self):
         logger.info('Updating relevance...')
         channels = [x for x in self._channels.values() if x.status==ChannelItemStatus.RELEVANCE_UNKNOWN]
         for channel in channels:
             channel.relevance = await self._relevance_estimator.get_relevance(channel.channel_id)
-            channel.status = ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH
-            self._storage.save(StoredChannelItem(channel)) 
+            self._change_status(channel, ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH)
 
     async def _search_ancestors(self):
         logger.info('Searching ancestors...')
@@ -139,12 +142,10 @@ class SnowballChannelSearch(Search):
                     self._storage.save(StoredMessage(m))
                 if child_channel_id not in self._channels:
                     self._enqueue_channel(child_channel_id)
-            channel.status = ChannelItemStatus.FINISHED
-            self._storage.save(StoredChannelItem(channel))
+            self._change_status(channel, ChannelItemStatus.FINISHED)
         except Exception as e:
             logger.error(f'Failed to load channel {channel.channel_id}: {e}')
-            channel.status = ChannelItemStatus.ERROR
-            self._storage.save(StoredChannelItem(channel))
+            self._change_status(channel, ChannelItemStatus.ERROR)
 
     def _is_finished(self):
         if len(self._channels) >= self._max_channels_count:
@@ -209,12 +210,14 @@ class StoredChannelItem(StoredItem):
     def __init__(self, channel: ChannelItem):
         self._value = {
             'id': channel.channel_id,
-            'relevance': channel.relevance,
-            'status': channel.status
-        }    
+            'datetime': datetime.now()
+        }
+        self._channel_status = channel.status
+        if channel.status == ChannelItemStatus.QUEUED_FOR_ANCESTORS_SEARCH:
+            self._value['relevance'] = channel.relevance
 
     def get_type(self) -> str:
-        return 'channel_item'
+        return f'channel_{self._channel_status.name}'
     
     def get_key(self) -> str:
         return 'id'
