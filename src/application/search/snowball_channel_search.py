@@ -160,7 +160,7 @@ class SnowballChannelSearch(Search):
 
 class StoredMessage(StoredItem):
     
-    _MESSAGES_IN_BUCKET = 10000 # buckets are used to limit the file size
+    _MESSAGES_IN_BUCKET = 50000 # max number of messages saved into one file
 
     def __init__(self, message: MessageResponse, total_messages: int):
         self._value = {

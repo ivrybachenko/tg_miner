@@ -80,6 +80,9 @@ class ChannelMessagesSearch(Search):
                 logger.error(e)
             results = [x for x in results if x is not None]
             if len(results) == 0: 
+                # TODO
+                # If all results are ERROR than they probably could be retried
+                # But currently it leads to finishing the search
                 return
             for result in results: 
                 total_messages += result['size']
