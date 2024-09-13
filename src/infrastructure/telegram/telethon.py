@@ -86,11 +86,16 @@ class TelethonTelegramApi(TelegramApi):
                 reactions=self._get_reactions(x),
                 forwards=x.forwards,
                 channel_fwd_from_id=await self._get_channel_from_id(x),
-                replies_count=x.replies.replies
+                replies_count=self._get_replies(x)
             )
             for x in messages
         ]
-    
+
+    def _get_replies(self, msg):
+        if msg.replies is None:
+            return None
+        return msg.replies.replies
+
     def _get_reactions(self, msg):
         if msg.reactions is None:
             return []

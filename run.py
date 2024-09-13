@@ -24,9 +24,9 @@ async def main():
     search = ChannelMessagesSearch(
         client_pool = client_pool,
         storage=storage,
-        channel_id='legitimniy',
-        max_message_count=2,
-        message_batch_size=2,
+        channel_id='aleksandr_skif',
+        max_message_count=1000,
+        message_batch_size=100,
         # filter=KeywordMessageFilter(['траснформ', 'цифров', 'устойчив'])
     )
     start = timer()
