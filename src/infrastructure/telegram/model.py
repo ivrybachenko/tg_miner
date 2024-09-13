@@ -21,5 +21,9 @@ class MessageResponse:
     views: int
     # Number of forwards.
     forwards: int
-    # Publication datetime
+    # Publication datetime.
     datetime: str
+    # Reactions [{'good': count_good}, {'bad': count_bad}].
+    reactions: list[dict[str, int]]
+    # Number of comments
+    replies_count: int

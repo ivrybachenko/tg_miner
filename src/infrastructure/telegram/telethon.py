@@ -83,11 +83,18 @@ class TelethonTelegramApi(TelegramApi):
                 channel_id=(await self._get_channel_by_peer_id(x.peer_id)).channel_id,
                 datetime=x.date,
                 views=x.views,
+                reactions=self._get_reactions(x),
                 forwards=x.forwards,
-                channel_fwd_from_id=await self._get_channel_from_id(x)
+                channel_fwd_from_id=await self._get_channel_from_id(x),
+                replies_count=x.replies.replies
             )
             for x in messages
         ]
+    
+    def _get_reactions(self, msg):
+        if msg.reactions is None:
+            return []
+        return [{r.reaction.emoticon: r.count} for r in msg.reactions.results]
 
     async def _get_channel_from_id(self, message):
         if message.fwd_from is None:

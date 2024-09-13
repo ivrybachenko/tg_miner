@@ -1,5 +1,4 @@
 from src.infrastructure.logging import logger
-from src.infrastructure.cache import MemoryCache
 from .client import Client
 
 
@@ -9,7 +8,6 @@ class ClientPool:
     """
     _clients = [] # All registered clients
     _next_client_index = 0 # Id of client which will be used for API call next time
-    _cache = MemoryCache()
 
     def add_client(self, client: Client):
         self._clients.append(client)

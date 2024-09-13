@@ -138,7 +138,12 @@ class StoredMessage(StoredItem):
             self._value = {
                 'message_id': message.message_id,
                 'channel_id': message.channel_id,
-                'text': message.text
+                'date': message.datetime,
+                'text': message.text,
+                'views_count': message.views,
+                'forwards_count': message.forwards,
+                'reactions': message.reactions,
+                'replies_count': message.replies_count
             }
         elif isinstance(message, dict):
             self._value = {

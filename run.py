@@ -24,10 +24,10 @@ async def main():
     search = ChannelMessagesSearch(
         client_pool = client_pool,
         storage=storage,
-        channel_id='rutube', 
-        max_message_count=30000,
-        message_batch_size=100,
-        filter=KeywordMessageFilter(['траснформ', 'цифров', 'устойчив'])
+        channel_id='legitimniy',
+        max_message_count=2,
+        message_batch_size=2,
+        # filter=KeywordMessageFilter(['траснформ', 'цифров', 'устойчив'])
     )
     start = timer()
     await search.start()
@@ -50,7 +50,7 @@ async def main():
     #         }
     #     ),
     #     start_channels=['cb_economics'],
-    #     max_channels_count=50,
+    #     max_channels_count=10000,
     #     number_of_messages_for_ancestor_search=1000,
     #     save_messages=True
     # )
