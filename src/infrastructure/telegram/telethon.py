@@ -98,7 +98,7 @@ class TelethonTelegramApi(TelegramApi):
 
     def _get_reactions(self, msg):
         if msg.reactions is None:
-            return []
+            return None
         return [{r.reaction.emoticon: r.count} for r in msg.reactions.results]
 
     async def _get_channel_from_id(self, message):

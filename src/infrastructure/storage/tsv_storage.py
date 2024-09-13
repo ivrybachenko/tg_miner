@@ -22,7 +22,7 @@ class TsvStorage(Storage):
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
         if len(os.listdir(out_dir)) > 0:
-            raise Exception('Output directory is not empty. " + \
+            raise Exception(f'Output directory is not empty [{out_dir}]. " + \
                 "Can save results only into the empty directory.')
     
     def save(self, item: StoredItem):

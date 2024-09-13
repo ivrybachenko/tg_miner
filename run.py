@@ -4,7 +4,7 @@ from datetime import timedelta
 from src.application.analytics import KeywordChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
-from src.application.search import SnowballChannelSearch, ChannelMessagesSearch, KeywordMessageFilter
+from src.application.search import SnowballChannelSearch, ChannelMessagesSearch, MultiChannelMessagesSearch, KeywordMessageFilter
 from src.infrastructure.storage import TsvStorage, ConsoleStorage
 from src.infrastructure.logging import logger
 
@@ -12,7 +12,7 @@ async def main():
     """
     Application entrypoint. 
     """
-    storage = TsvStorage('out')
+    # storage = TsvStorage('out')
     # storage = ConsoleStorage()
     client_pool = ClientPool()
     client_factory = ClientFactory()
@@ -21,10 +21,11 @@ async def main():
     await client_pool.activate_clients()
     logger.info('Application is ready.')
 
-    search = ChannelMessagesSearch(
+    search = MultiChannelMessagesSearch(
         client_pool = client_pool,
-        storage=storage,
-        channel_id='aleksandr_skif',
+        storage_path='out/politics2',
+        channel_ids=['aleksandr_skif', 'ASupersharij', 'gosuslugi', 'legitimniy', 'medvedev_telegram',\
+            'nevzorovtv', 'Rvvoenkor', 'sanya_florida', 'vv_volodin', 'yurasumy'],
         max_message_count=1000,
         message_batch_size=100,
         # filter=KeywordMessageFilter(['траснформ', 'цифров', 'устойчив'])

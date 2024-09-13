@@ -1,3 +1,4 @@
 from .search import Search
 from .snowball_channel_search import SnowballChannelSearch
 from .channel_messages_search import ChannelMessagesSearch, KeywordMessageFilter
+from .multi_channel_messages_search import MultiChannelMessagesSearch
