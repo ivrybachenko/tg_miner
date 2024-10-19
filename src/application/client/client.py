@@ -35,8 +35,9 @@ class Client:
         """
         return await self._api.get_channel(channel_id)
     
-    async def get_messages(self, channel_id, *, limit=3, offset_id=None, add_offset=None) -> list[MessageResponse]:
+    async def get_messages(self, channel_id, *, limit=3, offset_id=None, add_offset=None,
+        offset_date=None) -> list[MessageResponse]:
         """
         Get most recent messages from channel.
         """
-        return await self._api.get_messages(channel_id, limit, offset_id, add_offset)
+        return await self._api.get_messages(channel_id, limit, offset_id, add_offset, offset_date)

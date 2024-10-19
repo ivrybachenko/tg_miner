@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from telethon import TelegramClient
 from telethon.types import PeerChannel
 from .api import TelegramApi
@@ -66,8 +67,9 @@ class TelethonTelegramApi(TelegramApi):
     async def get_messages(self, 
                            channel_id: str, 
                            limit: int, 
-                           offset_id: int=None, 
-                           add_offset: int=None
+                           offset_id: int = None, 
+                           add_offset: int = None,
+                           offset_date: datetime = None
                           ) -> list[MessageResponse]:
         peer_id = await self._get_peer_id(channel_id)
         async with self._client:
@@ -77,7 +79,8 @@ class TelethonTelegramApi(TelegramApi):
                 entity=peer_id, 
                 limit=limit,
                 offset_id=offset_id,
-                add_offset=add_offset   
+                add_offset=add_offset,
+                offset_date=offset_date
             )
         return [
             MessageResponse(

@@ -114,7 +114,8 @@ class ChannelMessagesSearch(Search):
                 self._channel_id, 
                 limit=batch_size,
                 offset_id=offset_id,
-                add_offset=add_offset
+                add_offset=add_offset,
+                offset_date=self._max_date
             )
             messages = [m for m in messages if m.datetime >= self._min_date]
             if len(messages) == 0:
