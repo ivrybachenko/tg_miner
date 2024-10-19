@@ -1,6 +1,7 @@
 from src.infrastructure.logging import logger
 from src.infrastructure.cache import Cache
 from src.infrastructure.telegram import TelegramApi
+from src.infrastructure.telegram.model import MessageResponse
 
 
 class Client:
@@ -34,7 +35,7 @@ class Client:
         """
         return await self._api.get_channel(channel_id)
     
-    async def get_messages(self, channel_id, *, limit=3, offset_id=None, add_offset=None):
+    async def get_messages(self, channel_id, *, limit=3, offset_id=None, add_offset=None) -> list[MessageResponse]:
         """
         Get most recent messages from channel.
         """

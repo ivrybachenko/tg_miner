@@ -23,11 +23,15 @@ async def main():
 
     search = MultiChannelMessagesSearch(
         client_pool = client_pool,
-        storage_path='out/politics2',
-        channel_ids=['aleksandr_skif', 'ASupersharij', 'gosuslugi', 'legitimniy', 'medvedev_telegram',\
-            'nevzorovtv', 'Rvvoenkor', 'sanya_florida', 'vv_volodin', 'yurasumy'],
-        max_message_count=1000,
+        storage_path='out/sava',
+        channel_ids=[
+            # 'ejdailyru',
+            'dimsmirnov175'
+        ],
+        max_message_count=1000000,
         message_batch_size=100,
+        min_date='2021-01-01',
+        max_date='2024-10-01'
         # filter=KeywordMessageFilter(['траснформ', 'цифров', 'устойчив'])
     )
     start = timer()

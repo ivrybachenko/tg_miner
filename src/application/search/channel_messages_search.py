@@ -1,4 +1,6 @@
 import asyncio
+import pytz
+from datetime import datetime
 from abc import ABC, abstractmethod
 from src.application.client import ClientPool
 from src.infrastructure.storage import Storage, StoredItem
@@ -45,6 +47,8 @@ class ChannelMessagesSearch(Search):
     _max_message_count: int = None
     _message_batch_size: int = 0
     _filter: MessageFilter = None
+    _min_date: datetime = None
+    _max_date: datetime = None
 
     def __init__(self, 
                  client_pool: ClientPool, 
@@ -52,6 +56,8 @@ class ChannelMessagesSearch(Search):
                  channel_id: str, 
                  max_message_count: int,
                  message_batch_size: int,
+                 min_date: str,
+                 max_date: str,
                  filter: MessageFilter = AllMessageFilter(),
                 ):
         self._client_pool = client_pool
@@ -60,12 +66,13 @@ class ChannelMessagesSearch(Search):
         self._max_message_count = max_message_count
         self._message_batch_size = message_batch_size
         self._filter = filter
+        self._min_date = datetime.strptime(min_date, '%Y-%m-%d').replace(tzinfo=pytz.UTC)
+        self._max_date = datetime.strptime(max_date, '%Y-%m-%d').replace(tzinfo=pytz.UTC)
 
     async def start(self):
         if self._client_pool.get_size() == 0:
             raise Exception('Pool has no active clients. Unable to run search.')
         offset_id=0
-        add_offset=0
         total_messages=0
         while True:
             logger.info(f'Total messages: {total_messages}')
@@ -83,15 +90,20 @@ class ChannelMessagesSearch(Search):
                 # TODO
                 # If all results are ERROR than they probably could be retried
                 # But currently it leads to finishing the search
+                logger.info('No results found.')
                 return
+            should_finish = False
             for result in results: 
+                logger.info('Result size is ' + str(result['size']))
                 total_messages += result['size']
                 if result['size'] != 0:
                     if offset_id == 0:
                         offset_id = result['last_message_id']
                     offset_id = min(offset_id, result['last_message_id'])
                 if result['size'] == 0 or total_messages>=self._max_message_count:
-                    return
+                    should_finish = True
+            if should_finish:
+                return
     
     async def _download_batch(self, batch_size, offset_id, add_offset):
         if offset_id == 0 and add_offset != 0:
@@ -104,6 +116,7 @@ class ChannelMessagesSearch(Search):
                 offset_id=offset_id,
                 add_offset=add_offset
             )
+            messages = [m for m in messages if m.datetime >= self._min_date]
             if len(messages) == 0:
                 return {
                     'last_message_id': None,
@@ -114,9 +127,10 @@ class ChannelMessagesSearch(Search):
                 'size': len(messages)
             }
             messages = [m for m in messages if self._filter.match(m)]
+            messages = [m for m in messages if m.text is not None]
+            messages = [m for m in messages if m.datetime <= self._max_date]
             for message in messages:
-                if message.text is not None:
-                    message.text = message.text.replace('\n', r'\n')
+                message.text = message.text.replace('\n', r'\n')
                 self._storage.save(StoredMessage(message))
             return stats
         except Exception as e:
@@ -138,6 +152,7 @@ class StoredMessage(StoredItem):
             self._value = {
                 'message_id': message.message_id,
                 'channel_id': message.channel_id,
+                'channel_from_id': message.channel_fwd_from_id,
                 'date': message.datetime,
                 'views_count': message.views,
                 'forwards_count': message.forwards,

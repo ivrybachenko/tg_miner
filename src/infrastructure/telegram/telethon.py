@@ -1,3 +1,4 @@
+import time
 from telethon import TelegramClient
 from telethon.types import PeerChannel
 from .api import TelegramApi
@@ -54,6 +55,7 @@ class TelethonTelegramApi(TelegramApi):
         if cached_value is not None:
             return cached_value
         async with self._client:
+            time.sleep(1)
             logger.info(f'[{self._client_name}] GET_ENTITY_BY_PEER_ID: {peer_id.channel_id}')
             channel = await self._client.get_entity(peer_id)
         channel = ChannelResponse(channel.username, channel.title)
@@ -69,6 +71,7 @@ class TelethonTelegramApi(TelegramApi):
                           ) -> list[MessageResponse]:
         peer_id = await self._get_peer_id(channel_id)
         async with self._client:
+            time.sleep(1)
             logger.info(f'[{self._client_name}] GET_MESSAGES: {channel_id} limit={limit} offset_id={offset_id} add_offset-{add_offset}')
             messages = await self._client.get_messages(
                 entity=peer_id, 
@@ -99,7 +102,7 @@ class TelethonTelegramApi(TelegramApi):
     def _get_reactions(self, msg):
         if msg.reactions is None:
             return None
-        return [{r.reaction.emoticon: r.count} for r in msg.reactions.results]
+        return {r.reaction.emoticon: r.count for r in msg.reactions.results}
 
     async def _get_channel_from_id(self, message):
         if message.fwd_from is None:
@@ -120,6 +123,7 @@ class TelethonTelegramApi(TelegramApi):
         if cached_value is not None:
             return cached_value
         async with self._client:
+            time.sleep(1)
             logger.info(f'[{self._client_name}] GET_PEER_ID: {channel_id}')
             peer_id = await self._client.get_peer_id(channel_id)
             self._cache.store(
