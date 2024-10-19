@@ -49,3 +49,6 @@ class Storage(ABC):
             Returns nothing.
         """
         pass
+
+    def read(self, entity_type: str) -> str:
+        pass

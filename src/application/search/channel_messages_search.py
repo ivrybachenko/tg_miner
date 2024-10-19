@@ -49,6 +49,7 @@ class ChannelMessagesSearch(Search):
     _filter: MessageFilter = None
     _min_date: datetime = None
     _max_date: datetime = None
+    _start_message_id: int = None
 
     def __init__(self, 
                  client_pool: ClientPool, 
@@ -68,11 +69,29 @@ class ChannelMessagesSearch(Search):
         self._filter = filter
         self._min_date = datetime.strptime(min_date, '%Y-%m-%d').replace(tzinfo=pytz.UTC)
         self._max_date = datetime.strptime(max_date, '%Y-%m-%d').replace(tzinfo=pytz.UTC)
+        self._start_message_id = self._read_state()['offset_id']
+        logger.info(f'Resume from message with id {self._start_message_id}')
+
+    def _read_state(self):
+        messages = self._storage.read('message')
+        if messages is None:
+            return {
+                'offset_id': 0
+            }
+        messages = messages.split('\n')
+        message_ids = [v.split('\t')[0] for v in messages][1:-1]
+        message_ids = [int(x) for x in message_ids]
+        min_message_id = message_ids[0]
+        for id in message_ids:
+            min_message_id = min(min_message_id, id)
+        return {
+            'offset_id': min_message_id
+        }
 
     async def start(self):
         if self._client_pool.get_size() == 0:
             raise Exception('Pool has no active clients. Unable to run search.')
-        offset_id=0
+        offset_id=self._start_message_id
         total_messages=0
         while True:
             logger.info(f'Total messages: {total_messages}')

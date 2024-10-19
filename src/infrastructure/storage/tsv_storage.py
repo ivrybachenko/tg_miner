@@ -21,9 +21,9 @@ class TsvStorage(Storage):
         self._out_dir = out_dir
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
-        if len(os.listdir(out_dir)) > 0:
-            raise Exception(f'Output directory is not empty [{out_dir}]. " + \
-                "Can save results only into the empty directory.')
+        # if len(os.listdir(out_dir)) > 0:
+        #     raise Exception(f'Output directory is not empty [{out_dir}]. " + \
+        #         "Can save results only into the empty directory.')
     
     def save(self, item: StoredItem):
         filename = self._get_filename(item.get_type())
@@ -39,3 +39,10 @@ class TsvStorage(Storage):
 
     def _get_filename(self, entity_type: str):
         return os.path.join(self._out_dir, entity_type) + '.tsv'
+
+    def read(self, entity_type: str):
+        filename = self._get_filename(entity_type)
+        if not os.path.exists(filename):
+            return None
+        with open(filename, 'r') as f:
+            return f.read()
