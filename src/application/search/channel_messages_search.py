@@ -173,7 +173,7 @@ class StoredMessage(StoredItem):
                 'message_id': message.message_id,
                 'channel_id': message.channel_id,
                 'channel_from_id': message.channel_fwd_from_id,
-                'date': message.datetime,
+                'publish_datetime': message.datetime,
                 'views_count': message.views,
                 'forwards_count': message.forwards,
                 'reactions': message.reactions,
@@ -207,14 +207,14 @@ class StoredGetMessageError(StoredItem):
     def __init__(self, channel_id, limit, offset_id, add_offset, ex):
         self._value = {
             'channel_id': str(channel_id),
-            'limit': str(limit),
+            'max_count': str(limit),
             'offset_id': str(offset_id),
             'add_offset': str(add_offset),
             'exception': str(ex)
         }
 
     def get_type(self) -> str:
-        return 'get_message_error'
+        return 'save_message_error'
         
     def get_value(self) -> dict[str, str]:
         return self._value

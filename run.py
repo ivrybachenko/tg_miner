@@ -5,7 +5,7 @@ from src.application.analytics import KeywordChannelRelevanceEstimator
 from src.application.client import ClientPool
 from src.application.client import ClientFactory
 from src.application.search import SnowballChannelSearch, ChannelMessagesSearch, MultiChannelMessagesSearch, KeywordMessageFilter
-from src.infrastructure.storage import TsvStorage, ConsoleStorage
+from src.infrastructure.storage import TsvStorage, ConsoleStorage, PostgresStorage
 from src.infrastructure.logging import logger
 
 async def main():
@@ -13,7 +13,8 @@ async def main():
     Application entrypoint. 
     """
     # storage = TsvStorage('out')
-    # storage = ConsoleStorage()
+    storage = ConsoleStorage()
+
     client_pool = ClientPool()
     client_factory = ClientFactory()
     for client in client_factory.read_clients_from_properties('properties/clients.properties'):
@@ -23,10 +24,12 @@ async def main():
 
     search = MultiChannelMessagesSearch(
         client_pool = client_pool,
-        storage_path='out/sava',
+        storage=storage,
         channel_ids=[
-            # 'ejdailyru',
-            'dimsmirnov175'
+# 'ejdailyru', 'dimsmirnov175', 'mod_russia', 'SolovievLive', 'boris_rozhin', 'Rvvoenkor', 'rybar', 'medvedev_telegram', 'rlz_the_kraken', 'vchkogpu', 'government_rus', 'russicaRU', 'RKadyrov_95', 'opersvodki', 'mig41', 'news_kremlin', 'vv_volodin', 'NeoficialniyBeZsonoV', 'margaritasimonyan', 'SergeyKolyasnikov', 'voenkorKotenok', 'vysokygovorit', 'mos_sobyanin', 'MedvedevVesti', 'MariaVladimirovnaZakharova', 'politjoystic', 'PushilinDenis', 'vladlentatarsky', 'vvgladkov', 'MID_Russia', 'mnogonazi', 'RIAKremlinpool', 'obrazbuduschego2', 'aleksandr_skif', 'Hinshtein', 'vatnoeboloto', 'vityzeva', 'er_molnia', 'onf_front', 'mchs_official', 'kstati_p', 'skabeeva', 'mkhusnullin', 'rustroyka1945', 'youlistenedmayak', 'mardanaka', 'ASGasparyan', 'sskarnaukhov', 'vorobiev_live', 'russ_orientalist'
+        #'rian_ru', 'rt_russian', 'dvachannel', 'bbbreaking', 'novosti_efir', 'mash', 'yandex', 'tass_agency', 'readovkanews', 'bazabazon', 'shot_shot', 'msk_live', 'ru2ch', 'uranews', 'sashakots', 'rbc_news', 'bezposhady', 'mosnoow', 'pekagame', 'Jewish_hmr', 'wargonzo', 'moscowmap', 'warfakes', 'moscowach', 'bloodysx', 'klientvsprav', 'ruspr', 'milinfolive', 'epoddubny', 'izvestia'
+        # 'rt_russian'
+        'provod', 'TrendWatching24', 'whackdoor', 'exploitex', 'neuraldvig', 'yapsihologya', 'studyhardmotivation', 'psyhologiya_mysly', 'girls_sayy', 'olga_korobeynikova_quantum', 'banksta', 'bankser', 'multievan', 'economica', 'sberbank', 'okkomovies', 'slovo_patscana', 'irirussia', 'tlg_doc', 'kinopoisk'
         ],
         max_message_count=1000000,
         message_batch_size=100,

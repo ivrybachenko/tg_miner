@@ -59,10 +59,17 @@ class TelethonTelegramApi(TelegramApi):
             time.sleep(1)
             logger.info(f'[{self._client_name}] GET_ENTITY_BY_PEER_ID: {peer_id.channel_id}')
             channel = await self._client.get_entity(peer_id)
-        channel = ChannelResponse(channel.username, channel.title)
+        channel = ChannelResponse(self._get_username(channel), channel.title)
         self._cache.store(self._CHANNEL_BY_PEER_ID_CACHE_TYPE, peer_id.channel_id, channel, self._CHANNEL_BY_PEER_ID_TTL_SECONDS)
         return channel
 
+    def _get_username(self, channel):
+        if channel.username is not None:
+            return channel.username
+        elif channel.usernames is not None:
+            return [x.username for x in channel.usernames if x.active][0]
+        else:
+            return None
 
     async def get_messages(self, 
                            channel_id: str, 
@@ -105,15 +112,23 @@ class TelethonTelegramApi(TelegramApi):
     def _get_reactions(self, msg):
         if msg.reactions is None:
             return None
-        return {r.reaction.emoticon: r.count for r in msg.reactions.results}
+        try:
+            return {r.reaction.emoticon: r.count for r in msg.reactions.results}
+        except:
+            logger.error('Failed to get reactions')
+            return None
 
     async def _get_channel_from_id(self, message):
-        if message.fwd_from is None:
+        try:
+            if message.fwd_from is None:
+                return None
+            if type(message.fwd_from.from_id) != PeerChannel:
+                return None
+            channel_from = await self._get_channel_by_peer_id(message.fwd_from.from_id)
+            return channel_from.channel_id
+        except:
+            logger.error('Failed to get channel id')
             return None
-        if type(message.fwd_from.from_id) != PeerChannel:
-            return None
-        channel_from = await self._get_channel_by_peer_id(message.fwd_from.from_id)
-        return channel_from.channel_id
 
     async def _get_peer_id(self, channel_id: str):
         """
