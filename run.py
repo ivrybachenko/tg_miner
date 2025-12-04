@@ -68,5 +68,5 @@ async def main():
     # logger.info(f'Search finished. Elapsed time: {timedelta(seconds=end-start)}')
     
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+asyncio.run(main())
+
