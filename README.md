@@ -22,3 +22,8 @@ The scraper is designed to be extensible in adding new `Searches` and new `Stora
 Style guide for docstrings: https://numpydoc.readthedocs.io/en/latest/format.html#overview  
 Hexagonal architecture: https://vaadin.com/blog/ddd-part-3-domain-driven-design-and-the-hexagonal-architecture  
 You can run tests with `python -m unittest discover test`.
+
+# Citation
+
+If you use this software in your research or project, you can cite it by referring to its official state registration certificate:
+https://elibrary.ru/item.asp?id=80276645
